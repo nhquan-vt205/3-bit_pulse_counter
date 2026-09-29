@@ -1,13 +1,75 @@
-# Module Specification: 3-bit Pulse Counter (Register Design Practice)
+# 3-bit Pulse Counter (Register Design Practice) — Requirement
 
-> Nguồn: `ic_overview_session13_register_practice.pdf` — Session 13: Register Design Practice
-> Khóa học: ICTC – Thiết kế vi mạch cơ bản (RTL Design and Verification)
+> Source: `ic_overview_session13_register_practice.pdf` — Session 13: Register Design Practice
+> Course: ICTC – Fundamentals of IC Design (RTL Design and Verification)
 
-## 1. Tổng quan module
+## Overview
+The `counter_top` module is a **3-bit pulse counter** with an **asynchronous reset**, controlled through a **Register** block (CSR – Control/Status Register interface). The module consists of 2 sub-blocks:
+- **Register**: decodes the address, handles CR/SR read/write, generates control signals (`pulse`, `count_clr`) down to the `counter`, and receives status (`overflow`, `count[2:0]`) from the `counter` to reflect into the SR on read.
+- **counter**: the actual 3-bit counting logic, handling pulse, clear, and overflow detection.
 
-Module là một **bộ đếm xung 3-bit (3-bit pulse counter)** có **reset bất đồng bộ (async reset)**, được điều khiển thông qua một khối **Register** (CSR – Control/Status Register interface).
+## Parameters
+*Note: the original document does not define explicit parameters — this is a fixed-width design. The values below are constants inferred from the spec, listed in "Parameters" format to match the template structure.*
 
-### Sơ đồ khối (counter_top)
+| Name   | Default | Description                                    |
+|--------|---------|-------------------------------------------------|
+| CNT_W  | 3       | counter width (bits)                           |
+| ADDR_W | 10      | register address width (`addr[9:0]`)           |
+| DATA_W | 32      | read/write data width                          |
+| RS_LV  | 0       | reset active level (0 = active-low, async)     |
+
+## Top-level ports
+
+| Port         | Dir | Width | Description                    |
+|--------------|-----|-------|----------------------------------|
+| clk          | in  | 1     | System clock                    |
+| rst_n        | in  | 1     | Asynchronous reset, active low  |
+| wr_en        | in  | 1     | Register write enable           |
+| rd_en        | in  | 1     | Register read enable            |
+| addr[9:0]    | in  | 10    | Register address                |
+| wdata[31:0]  | in  | 32    | Write data                       |
+| rdata[31:0]  | out | 32    | Read data                        |
+
+### Internal signals (Register ↔ counter)
+*Not a top-level port, but needed for the internal logic diagram.*
+
+| Signal      | Direction            | Description                                                                 |
+|-------------|-----------------------|-------------------------------------------------------------------------------|
+| pulse       | Register → counter    | Pulse generated when `1` is written to `CR.pulse_en`                          |
+| count_clr   | Register → counter    | Clears the counter when `1` is written to `CR.count_clr`                     |
+| overflow    | counter → Register    | Indicates a count overflow when the counter is at its max value and a pulse command still occurs |
+| count[2:0]  | counter → Register    | Current count value, reflected into `SR.cnt`                                 |
+
+## Register map
+
+| Addr  | Name | Access     | Description |
+|-------|------|------------|--------------|
+| 0x000 | CR   | RW / WO    | Control register. bit[1] `count_clr` (RW) — write 1 to clear the counter, write 0 has no effect; bit[0] `pulse_en` (WO) — write 1 to generate one pulse, read always returns 0; bit[31:2] reserved |
+| 0x004 | SR   | RW0C / RO  | Status register. bit[3] `overflow` (RW0C) — set to 1 when an overflow occurs, stays set until cleared by writing 0 (writing 1 has no effect); bit[2:0] `cnt` (RO) — current counter value; bit[31:4] reserved |
+
+## Functional behavior
+- Writing `1` to `CR.pulse_en` → generates a `pulse` and the counter increments by 1.
+- The module **does not support continuous (back-to-back) writes** — only one write command is allowed at a time.
+- Writing `CR.count_clr = 1` → clears the counter to `0` (via the `count_clr` signal).
+- If a pulse is generated while the counter is already at its maximum value (`3'b111`) → an **overflow** occurs: `SR.overflow` is set to `1` and stays set until cleared by writing `0` to `SR.overflow`.
+- The current counter value is always reflected (real-time, read-only) through `SR.cnt[2:0]`.
+
+## Timing / performance
+- Asynchronous reset, active low (`rst_n` = 0).
+- System clock frequency: **not specified** in the source document.
+- `SR.overflow` does not self-clear on the next clock cycle or the next pulse — it can only be cleared by an explicit CPU write of `0`.
+
+## Out of scope
+- RTL code, testbench, and the verification plan (Vplan) — these are **homework** requirements and are not part of this functional spec (see Appendix).
+- The full logic diagram implementing the waveform — students must draw this themselves per the assignment; it is not included in the spec.
+- Running multiple counter instances in parallel, or a counter width other than 3 bits, are not supported within the scope of this assignment.
+
+---
+
+## Appendix — Original source reference material
+*This section keeps the original document's content that does not fit the standard IP-spec template structure, but is still needed for the practice session / homework.*
+
+### Block diagram (counter_top)
 
 ```
                       counter_top
@@ -23,74 +85,7 @@ wdata[31:0]─►│                    overflow ◄──────│
         └──────────────────────────────────────┘
 ```
 
-Module `counter_top` gồm 2 khối con:
-- **Register**: giải mã địa chỉ, xử lý đọc/ghi CR/SR, sinh các tín hiệu điều khiển (`pulse`, `count_clr`) đưa xuống `counter`, đồng thời nhận trạng thái (`overflow`, `count[2:0]`) từ `counter` để phản ánh vào SR khi đọc.
-- **counter**: logic đếm 3-bit thực tế, xử lý pulse, clear, và phát hiện overflow.
-
-### Danh sách tín hiệu top-level (counter_top)
-
-| Tên tín hiệu | Hướng | Độ rộng | Mô tả |
-|---|---|---|---|
-| `clk` | input | 1 | Xung clock hệ thống |
-| `rst_n` | input | 1 | Reset bất đồng bộ, tích cực mức thấp |
-| `wr_en` | input | 1 | Enable ghi vào register |
-| `rd_en` | input | 1 | Enable đọc từ register |
-| `addr[9:0]` | input | 10 | Địa chỉ thanh ghi |
-| `wdata[31:0]` | input | 32 | Dữ liệu ghi |
-| `rdata[31:0]` | output | 32 | Dữ liệu đọc ra |
-
-### Tín hiệu nội bộ giữa Register và counter
-
-| Tên tín hiệu | Hướng (từ Register → counter, hoặc ngược lại) | Mô tả |
-|---|---|---|
-| `pulse` | Register → counter | Xung tạo ra khi ghi 1 vào `CR.pulse_en` |
-| `count_clr` | Register → counter | Xung/mức xóa bộ đếm khi ghi 1 vào `CR.count_clr` |
-| `overflow` | counter → Register | Báo hiệu tràn số đếm (pulse) khi counter đang ở giá trị max mà vẫn có lệnh pulse |
-| `count[2:0]` | counter → Register | Giá trị đếm hiện tại, phản ánh vào `SR.cnt` |
-
-## 2. Yêu cầu chức năng (Functional Requirements)
-
-### 2.1. Pulse generation & increment
-- Khi ghi giá trị `1` vào `CR.pulse_en`, module sinh ra một xung (`pulse`) và bộ đếm (`counter`) tăng thêm 1.
-- Module **không hỗ trợ ghi liên tục** (continuous write) — chỉ cho phép xảy ra **1 lệnh ghi tại một thời điểm**.
-
-### 2.2. Clear counter
-- Ghi `CR.count_clr = 1` sẽ xóa bộ đếm về `0` (thể hiện qua tín hiệu `count_clr`).
-
-### 2.3. Overflow condition
-- Nếu một pulse được sinh ra (ghi 1 vào `CR.pulse_en`) trong khi bộ đếm **đã ở giá trị lớn nhất** (`3'b111`), thì xảy ra **overflow** (thể hiện qua tín hiệu `overflow`).
-- Khi overflow xảy ra: `SR.overflow` được set lên `1` và **giữ nguyên giá trị 1** cho đến khi bị xóa bằng cách **ghi 0** vào nó (ghi 0 vào `SR.overflow`).
-
-### 2.4. Status monitoring
-- Giá trị bộ đếm hiện tại có thể được giám sát/đọc thông qua `SR.cnt[2:0]`.
-
-## 3. Đặc tả thanh ghi (Register Specification)
-
-### 3.1. CR – Control Register (addr = 10'h0)
-
-| Bit | Name | Type | Default | Mô tả |
-|---|---|---|---|---|
-| 31:2 | Reserved | RO | 30'b0 | Reserved |
-| 1 | count_clr | RW | 1'b0 | Counter clear.<br>0: không xóa counter<br>1: xóa counter |
-| 0 | pulse_en | WO | 1'b0 | Ghi 1 để sinh 1 pulse.<br>Ghi 0 không có tác dụng.<br>Đọc luôn trả về 0 |
-
-### 3.2. SR – Status Register (addr = 10'h4)
-
-| Bit | Name | Type | Default | Mô tả |
-|---|---|---|---|---|
-| 31:4 | Reserved | RO | 28'b0 | Reserved |
-| 3 | overflow | RW0C | 1'b0 | 1: overflow đã xảy ra<br>0: chưa có overflow<br>Ghi 0 để xóa (clear). Ghi 1 không có tác dụng. |
-| 2:0 | cnt | RO | 3'h0 | Giá trị hiện tại của bộ đếm |
-
-**Ghi chú về register type:**
-- `RO` (Read Only): chỉ đọc.
-- `RW` (Read/Write): đọc/ghi bình thường.
-- `WO` (Write Only): chỉ ghi, đọc luôn trả về giá trị mặc định (0).
-- `RW0C` (Read/Write 1 to Clear... nhưng ở đây quy ước ngược: Write-0-to-Clear): đọc trả về giá trị hiện tại; ghi `0` sẽ xóa bit về 0; ghi `1` không có tác dụng.
-
-## 4. Waveform mẫu (trạng thái khởi tạo, dùng làm template)
-
-Định dạng WaveDrom, dùng làm khung sườn để vẽ waveform minh họa các case: pulse_en, count_clr, overflow.
+### Sample waveform (WaveDrom) — initial state, used as a template
 
 ```js
 {signal: [
@@ -106,9 +101,7 @@ Module `counter_top` gồm 2 khối con:
 ]}
 ```
 
-Học viên cần tự vẽ tiếp waveform minh họa đầy đủ các case theo yêu cầu chức năng ở mục 2 (ghi pulse_en → pulse + tăng count; ghi count_clr → reset count; pulse khi count=max → overflow set SR.overflow; ghi 0 vào SR.overflow → clear).
-
-### Waveform tự vẽ (minh họa case pulse_en → increment → overflow)
+### Worked-out waveform (illustrating pulse_en → increment → overflow)
 
 ```js
 {signal: [
@@ -124,33 +117,33 @@ Học viên cần tự vẽ tiếp waveform minh họa đầy đủ các case th
 ]}
 ```
 
-Học viên cần tự vẽ tiếp waveform minh họa đầy đủ các case theo yêu cầu chức năng ở mục 2 (ghi pulse_en → pulse + tăng count; ghi count_clr → reset count; pulse khi count=max → overflow set SR.overflow; ghi 0 vào SR.overflow → clear).
+Students still need to draw a waveform illustrating all cases required by the functional spec (writing pulse_en → pulse + count increment; writing count_clr → reset count; pulse when count = max → overflow sets SR.overflow; writing 0 to SR.overflow → clear).
 
-## 5. Quy trình thực hành trên lớp (Practice Flow)
+### In-class practice flow
 
-| Bước | Nội dung | Thời gian |
+| Step | Content | Time |
 |---|---|---|
-| 1 | Tự nghiên cứu specification | 10 phút (19h10–19h20) |
-| 2 | Q&A với giảng viên để hiểu rõ yêu cầu | 15 phút (19h20–19h35) |
-| 3 | Vẽ waveform theo template | 15 phút (19h35–19h50) |
-| 4 | Trình bày và giải thích waveform trước lớp (GV chọn 1-2 SV) | 10 phút (19h50–20h00) |
-| 5 | Giảng viên giải thích waveform mẫu, Q&A | 15 phút (20h00–20h15) |
-| 6 | Vẽ logic diagram hiện thực hóa waveform trên (logic sinh pulse từ write command; logic của SR.overflow) | 15 phút (20h15–20h30) |
-| 7 | Trình bày và giải thích logic diagram | 10 phút (20h30–20h40) |
-| 8 | Giảng viên giải thích diagram mẫu | 15 phút (20h40–20h55) |
+| 1 | Self-study the specification | 10 min (19:10–19:20) |
+| 2 | Q&A with the instructor to clarify requirements | 15 min (19:20–19:35) |
+| 3 | Draw the waveform based on the template | 15 min (19:35–19:50) |
+| 4 | Present and explain the waveform to the class (instructor picks 1–2 students) | 10 min (19:50–20:00) |
+| 5 | Instructor explains the sample waveform, Q&A | 15 min (20:00–20:15) |
+| 6 | Draw the logic diagram implementing the above waveform (logic generating pulse from a write command; logic for SR.overflow) | 15 min (20:15–20:30) |
+| 7 | Present and explain the logic diagram | 10 min (20:30–20:40) |
+| 8 | Instructor explains the sample diagram | 15 min (20:40–20:55) |
 
-RTL code và testbench sẽ được hoàn thành trong phần bài tập về nhà (homework).
+The RTL code and testbench will be completed as part of the homework.
 
-## 6. Yêu cầu bài tập về nhà (Homework)
+### Homework requirements
 
-Tạo thư mục `13_ss13` dưới home directory, và bên trong tạo thư mục `pulse_counter` chứa các nội dung sau (tổng 20 điểm, 10 điểm đầu tính mức chuẩn, phần còn lại là mức nâng cao):
+Create a folder named `13_ss13` under the home directory, and inside it create a folder named `pulse_counter` containing the following (20 points total; the first 10 points cover the standard level, the rest is the advanced level):
 
-| Yêu cầu | Điểm |
+| Requirement | Points |
 |---|---|
-| Vẽ lại waveform | 2p |
-| Vẽ **đầy đủ (full)** logic diagram của module | 4p |
-| Hoàn thành RTL code | 6p |
-| Tạo Vplan (verification plan) | 2p |
-| Sinh testbench và verify cho thiết kế | 6p |
+| Redraw the waveform | 2p |
+| Draw the **full** logic diagram of the module | 4p |
+| Complete the RTL code | 6p |
+| Create a Vplan (verification plan) | 2p |
+| Generate a testbench and verify the design | 6p |
 
-Nộp toàn bộ tài liệu bao gồm: waveform, logic diagram, Vplan trong báo cáo (report).
+Submit all documents — including the waveform, logic diagram, and Vplan — in the report.
