@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Counter Top New Schematic</title>
+<style>
+  :root {
+    --bg:#f7f7f5; --panel:#fff; --ink:#17181c; --dim:#6b6f76; --line:#c9ccd1;
+    --unit:#f0f1f3; --accent:#1f6f8b; --new:#1a7f5a; --newbg:#eaf6f0;
+    --chip:#e9ecef;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#141518; --panel:#1c1e22; --ink:#e6e7ea; --dim:#9aa0a8;
+      --line:#3a3e45; --unit:#23262b; --accent:#63b6cf; --new:#4cc38a;
+      --newbg:#1b2a24; --chip:#2a2e34;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#141518; --panel:#1c1e22; --ink:#e6e7ea; --dim:#9aa0a8;
+    --line:#3a3e45; --unit:#23262b; --accent:#63b6cf; --new:#4cc38a;
+    --newbg:#1b2a24; --chip:#2a2e34;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); line-height:1.55;
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .wrap { max-width:1180px; margin:0 auto; padding:40px 16px 72px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:22px;
+    margin-bottom:34px; }
+  h1 { font-size:clamp(20px,3.4vw,27px); margin:0 0 6px; letter-spacing:-.01em; }
+  h2 { font-size:clamp(16px,2.4vw,20px); margin:44px 0 6px; }
+  .sub { color:var(--dim); font-size:14px; margin:0; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .chip { background:var(--chip); border:1px solid var(--line);
+    border-radius:999px; padding:3px 11px; font-size:12.5px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .chip.new { background:var(--newbg); border-color:var(--new); color:var(--new); }
+  figure { margin:18px 0 0; background:var(--panel);
+    border:1px solid var(--line); border-radius:10px; padding:18px 16px 12px;
+    overflow:hidden; }
+  figure svg { display:block; width:100%; max-width:100%; height:auto;
+    color:var(--ink); }
+  figcaption { color:var(--dim); font-size:12.5px; margin-top:14px;
+    padding-top:12px; border-top:1px solid var(--line); }
+  svg .outer { fill:none; stroke:var(--ink); stroke-width:2;
+    stroke-dasharray:9 6; }
+  svg .unit { fill:var(--unit); stroke:var(--line); stroke-width:1.6; }
+  svg .bb { stroke-dasharray:7 5; }
+  svg .cell { fill:var(--panel); stroke:var(--ink); stroke-width:1.6; }
+  svg .gate { fill:var(--panel); stroke:var(--ink); stroke-width:1.6; }
+  svg .newbox { fill:var(--newbg); stroke:var(--new); stroke-width:1.8; }
+  svg .newtxt { fill:var(--new); }
+  svg text { fill:currentColor; font-family:ui-sans-serif,system-ui,sans-serif; }
+  svg text.m { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  svg .dim { fill:var(--dim); }
+  svg .ttl { fill:var(--ink); }
+  svg .ttl2 { fill:var(--accent); }
+  table { border-collapse:collapse; width:100%; font-size:13px; margin-top:14px; }
+  th,td { border:1px solid var(--line); padding:7px 10px; text-align:left;
+    vertical-align:top; }
+  th { background:var(--unit); font-weight:600; }
+  code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; }
+  p, ul { font-size:14px; }
+  ul { padding-left:22px; }
+  .legend { display:flex; flex-wrap:wrap; gap:16px; margin-top:14px;
+    font-size:12.5px; color:var(--dim); }
+  .legend i { display:inline-block; width:22px; height:0; vertical-align:middle;
+    border-top:3px solid var(--ink); margin-right:7px; }
+  .legend i.n { border-color:var(--new); }
+  .note { background:var(--unit); border:1px solid var(--line);
+    border-left:3px solid var(--new); border-radius:6px; padding:12px 14px;
+    font-size:13.5px; margin-top:16px; }
+  footer { margin-top:52px; padding-top:18px; border-top:1px solid var(--line);
+    color:var(--dim); font-size:12.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>counter_top &mdash; s&#417; &#273;&#7891; logic t&#7893;ng
+  (thi&#7871;t k&#7871; m&#7899;i)</h1>
+  <p class="sub">B&#7843;n c&#243; th&#234;m logic &#273;&#7885;c cho
+  <code>CR.count_clr</code>. Kh&#7889;i <code>u_register</code> v&#7869;
+  chi ti&#7871;t t&#7899;i m&#7913;c c&#7893;ng / flip-flop / mux;
+  <code>u_counter</code> &#273;&#7875; m&#7897;t kh&#7889;i l&#7899;n.</p>
+  <div class="chips">
+    <span class="chip">count 3 bit</span>
+    <span class="chip">wdata 32 bit</span>
+    <span class="chip">addr 10 bit</span>
+    <span class="chip">CR = 0x000</span>
+    <span class="chip">SR = 0x004</span>
+    <span class="chip new">2 FF trong register</span>
+    <span class="chip new">3 mux doc</span>
+  </div>
+</header>
+
+<h2>1. S&#417; &#273;&#7891; t&#7893;ng</h2>
+<figure>
+<svg viewBox="0 0 1800 1310" role="img" aria-label="Full gate level schematic of counter_top for the design where CR.count_clr is readable. The register block shows the address comparators, the AND gates producing pulse and count_clr, a new cr_clr_q flip-flop with a hold multiplexer loaded on CR writes, the SR.overflow flip-flop, and three read multiplexers selected by sr_sel, cr_sel and rd_en. The counter is one large block exchanging pulse, count_clr, overflow and count with the register."><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="currentColor"/></marker></defs><rect x="120" y="70" width="1500" height="1180" rx="8" class="outer"/><text x="132" y="92" text-anchor="start" font-size="15" font-weight="600" class="ttl">counter_top</text><rect x="175" y="100" width="945" height="1095" rx="6" class="unit"/><text x="1108" y="122" text-anchor="end" font-size="13.5" font-weight="600" class="ttl2">u_register</text><rect x="1260" y="250" width="280" height="310" rx="6" class="unit bb"/><text x="1400" y="300" text-anchor="middle" font-size="15" font-weight="600" class="ttl2">u_counter</text><text x="1400" y="324" text-anchor="middle" font-size="11.5" class="dim">khoi dem 3-bit</text><text x="1400" y="360" text-anchor="middle" font-size="11" class="dim">count_nxt mux  .  +1  .  3 x FF</text><text x="1400" y="382" text-anchor="middle" font-size="11" class="dim">cnt_max = &count</text><text x="1400" y="404" text-anchor="middle" font-size="11" class="dim">overflow = pulse & ~count_clr & cnt_max</text><text x="1400" y="440" text-anchor="middle" font-size="10.5" class="dim">khong ve chi tiet</text><circle cx="120" cy="120" r="3.6" fill="currentColor"/><text x="111" y="124.5" text-anchor="end" font-size="12.5" class="m">wr_en</text><circle cx="120" cy="215" r="3.6" fill="currentColor"/><text x="111" y="219.5" text-anchor="end" font-size="12.5" class="m">addr[9:0]</text><circle cx="120" cy="330" r="3.6" fill="currentColor"/><text x="111" y="334.5" text-anchor="end" font-size="12.5" class="m">wdata[31:0]</text><circle cx="120" cy="1160" r="3.6" fill="currentColor"/><text x="111" y="1164.5" text-anchor="end" font-size="12.5" class="m">rd_en</text><circle cx="120" cy="1200" r="3.6" fill="currentColor"/><text x="111" y="1204.5" text-anchor="end" font-size="12.5" class="m">clk</text><circle cx="120" cy="1230" r="3.6" fill="currentColor"/><text x="111" y="1234.5" text-anchor="end" font-size="12.5" class="m">rst_n</text><circle cx="1620" cy="976" r="3.6" fill="currentColor"/><text x="1629" y="980.5" text-anchor="start" font-size="12.5" class="m">rdata[31:0]</text><polyline points="120,215 205,215" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><polyline points="153,222 167,208" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="164" y="204" text-anchor="start" font-size="10.5" class="m dim">10</text><polyline points="205,163 205,243" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><circle cx="205" cy="215" r="4.2" fill="currentColor"/><polyline points="205,163 250,163" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round" marker-end="url(#ar)"/><polyline points="205,243 250,243" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round" marker-end="url(#ar)"/><rect x="250" y="138" width="165" height="50" rx="3" class="cell"/><text x="332" y="158" text-anchor="middle" font-size="12" class="m">addr == 10'h000</text><text x="332" y="176" text-anchor="middle" font-size="11" class="dim">CR select</text><rect x="250" y="218" width="165" height="50" rx="3" class="cell"/><text x="332" y="238" text-anchor="middle" font-size="12" class="m">addr == 10'h004</text><text x="332" y="256" text-anchor="middle" font-size="11" class="dim">SR select</text><polyline points="415,163 465,163" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="415,243 465,243" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="120,120 448,120 448,181 465,181" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="448,181 448,261 465,261" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="448" cy="181" r="4.2" fill="currentColor"/><path d="M 465 150 L 484.32 150 A 26.68 22.0 0 0 1 484.32 194 L 465 194 Z" class="gate"/><path d="M 465 230 L 484.32 230 A 26.68 22.0 0 0 1 484.32 274 L 465 274 Z" class="gate"/><text x="516" y="167" text-anchor="start" font-size="11" class="m">cr_wr</text><text x="516" y="246" text-anchor="start" font-size="11" class="m">sr_wr</text><polyline points="428,163 428,300 1040,300 1040,1125 784,1125" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="428" cy="163" r="4.2" fill="currentColor"/><text x="560" y="293" text-anchor="start" font-size="11" class="m">cr_sel</text><polyline points="438,243 438,320 1060,320 1060,1090 664,1090" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="438" cy="243" r="4.2" fill="currentColor"/><text x="560" y="313" text-anchor="start" font-size="11" class="m">sr_sel</text><polyline points="511,172 545,172 545,353 600,353" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="545,353 545,423 600,423" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="545" cy="353" r="4.2" fill="currentColor"/><polyline points="120,330 230,330" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><polyline points="168,337 182,323" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="179" y="319" text-anchor="start" font-size="10.5" class="m dim">32</text><polyline points="230,330 230,660" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><polyline points="230,371 600,371" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="230" cy="371" r="4.2" fill="currentColor"/><text x="250" y="364" text-anchor="start" font-size="11" class="m">wdata[0]</text><polyline points="230,441 600,441" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="230" cy="441" r="4.2" fill="currentColor"/><text x="250" y="434" text-anchor="start" font-size="11" class="m">wdata[1]</text><polyline points="230,660 500,660" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="250" y="653" text-anchor="start" font-size="11" class="m">wdata[3]</text><path d="M 600 340 L 619.32 340 A 26.68 22.0 0 0 1 619.32 384 L 600 384 Z" class="gate"/><path d="M 600 410 L 619.32 410 A 26.68 22.0 0 0 1 619.32 454 L 600 454 Z" class="gate"/><polyline points="646,362.0 1260,362" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="700" y="355" text-anchor="start" font-size="12" class="m">pulse</text><polyline points="646,432.0 1260,432" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="700" y="425" text-anchor="start" font-size="12" class="m">count_clr</text><rect x="700" y="470" width="300" height="150" rx="6" class="newbox"/><text x="708" y="492" text-anchor="start" font-size="11" font-weight="600" class="newtxt">LOGIC MOI</text><polyline points="290,441 290,512 740,512" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="290" cy="441" r="4.2" fill="currentColor"/><polyline points="545,423 545,600 764,600" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="545" cy="423" r="4.2" fill="currentColor"/><text x="552" y="593" text-anchor="start" font-size="10.5" class="m">cr_wr</text><path d="M 740 495 L 788 506.9 L 788 553.1 L 740 565 Z" class="cell"/><text x="748" y="516" text-anchor="start" font-size="11.5" class="m">1</text><text x="748" y="552" text-anchor="start" font-size="11.5" class="m">0</text><text x="764.0" y="534.0" text-anchor="middle" font-size="10.5" class="dim">MUX</text><polyline points="764,600 764.0,562.62" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="771" y="604" text-anchor="start" font-size="11" class="m"></text><rect x="855" y="490" width="100" height="80" rx="3" class="cell"/><text x="864" y="516" text-anchor="start" font-size="12" class="m">D</text><text x="946" y="516" text-anchor="end" font-size="12" class="m">Q</text><path d="M 861 523 L 872 530 L 861 537 Z" class="gate"/><circle cx="850.5" cy="552" r="4.5" class="gate"/><text x="864" y="556" text-anchor="start" font-size="10.5" class="m">CLR_N</text><text x="905.0" y="481" text-anchor="middle" font-size="11.5" class="dim">FF  cr_clr_q</text><polyline points="788,512 855,512" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><polyline points="955,512 990,512" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><text x="996" y="506" text-anchor="start" font-size="10.5" class="m">cr_clr_q</text><polyline points="990,512 990,845 275,845 275,895 300,895" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ar)"/><polyline points="990,585 712,585 712,548 740,548" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="990" cy="585" r="4.2" fill="currentColor"/><path d="M 500 645.0 L 534 660 L 500 675.0 Z" class="gate"/><circle cx="538.5" cy="660" r="4.5" class="gate"/><polyline points="511,252 520,252 520,625 600,625" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="543,660 600,660" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M 600 612 L 619.32 612 A 26.68 30.5 0 0 1 619.32 673 L 600 673 Z" class="gate"/><text x="652" y="636" text-anchor="start" font-size="11" class="m">sr_ovf_clr</text><path d="M 600 707 Q 632.24 707 652 737.5 Q 632.24 768 600 768 Q 613.52 737.5 600 707 Z" class="gate"/><text x="602" y="700" text-anchor="start" font-size="11" class="m">set_or_hold</text><path d="M 700 667 L 719.32 667 A 26.68 41.5 0 0 1 719.32 750 L 700 750 Z" class="gate"/><circle cx="695.5" cy="680" r="4.5" class="gate"/><polyline points="646,642.5 672,642.5 672,680 691,680" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="652,737.5 700,737" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="700" y="662" text-anchor="start" font-size="11" class="m">sr_ovf_nxt</text><rect x="855" y="700" width="100" height="110" rx="3" class="cell"/><text x="864" y="729" text-anchor="start" font-size="12" class="m">D</text><text x="946" y="729" text-anchor="end" font-size="12" class="m">Q</text><path d="M 861 738 L 872 745 L 861 752 Z" class="gate"/><circle cx="850.5" cy="775" r="4.5" class="gate"/><text x="864" y="779" text-anchor="start" font-size="10.5" class="m">CLR_N</text><text x="905.0" y="691" text-anchor="middle" font-size="11.5" class="dim">FF  SR.overflow</text><polyline points="746,708.5 790,708.5 790,725 855,725" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="955,725 1010,725 1010,828 245,828 245,965 300,965" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="1018" y="720" text-anchor="start" font-size="11" class="m">sr_overflow</text><polyline points="560,828 560,755 600,755" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><circle cx="560" cy="828" r="4.2" fill="currentColor"/><polyline points="1540,430 1558,430 1558,862 575,862 575,720 600,720" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="1090" y="855" text-anchor="start" font-size="11" class="m">overflow</text><polyline points="1540,470 1578,470 1578,1070 215,1070 215,985 300,985" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round" marker-end="url(#ar)"/><text x="1090" y="1063" text-anchor="start" font-size="11" class="m">count[2:0]</text><polyline points="1571,707 1585,693" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="1582" y="689" text-anchor="start" font-size="10.5" class="m dim">3</text><rect x="300" y="870" width="260" height="50" rx="3" class="newbox"/><text x="430" y="899" text-anchor="middle" font-size="11" class="m">{ 30'h0 , cr_clr_q , 1'b0 }</text><text x="568" y="892" text-anchor="start" font-size="10.5" class="newtxt">CR read word  (MOI)</text><rect x="300" y="950" width="260" height="50" rx="3" class="cell"/><text x="430" y="972" text-anchor="middle" font-size="10.5" class="m">{ 28'h0 , sr_overflow ,</text><text x="430" y="990" text-anchor="middle" font-size="10.5" class="m">count[2:0] }</text><polyline points="560,975 640,975" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><text x="880" y="1082" text-anchor="start" font-size="11" class="m">sr_sel</text><path d="M 640 945 L 688 963.7 L 688 1036.3 L 640 1055 Z" class="cell"/><text x="648" y="979" text-anchor="start" font-size="11.5" class="m">1</text><text x="648" y="1034" text-anchor="start" font-size="11.5" class="m">0</text><text x="664.0" y="1004.0" text-anchor="middle" font-size="10.5" class="dim">MUX</text><polyline points="664,1090 664.0,1051.26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="671" y="1094" text-anchor="start" font-size="11" class="m"></text><polyline points="622,1021 622,1039" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><text x="615" y="1034" text-anchor="end" font-size="11" class="m">32'h0</text><polyline points="622,1030 640,1030" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="560,895 760,895" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><text x="880" y="1117" text-anchor="start" font-size="11" class="m">cr_sel</text><path d="M 760 883 L 808 904.93 L 808 990.07 L 760 1012 Z" class="cell"/><text x="768" y="899" text-anchor="start" font-size="11.5" class="m">1</text><text x="768" y="1004" text-anchor="start" font-size="11.5" class="m">0</text><text x="784.0" y="951.5" text-anchor="middle" font-size="10.5" class="dim">MUX</text><polyline points="784,1125 784.0,1007.614" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="791" y="1129" text-anchor="start" font-size="11" class="m"></text><polyline points="688,1000 760,1000" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><text x="700" y="940" text-anchor="start" font-size="10.5" class="m">rd_word</text><polyline points="808,947 1000,947" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><text x="880" y="1152" text-anchor="start" font-size="11" class="m">rd_en</text><path d="M 1000 930 L 1048 947.0 L 1048 1013.0 L 1000 1030 Z" class="cell"/><text x="1008" y="951" text-anchor="start" font-size="11.5" class="m">1</text><text x="1008" y="1009" text-anchor="start" font-size="11.5" class="m">0</text><text x="1024.0" y="984.0" text-anchor="middle" font-size="10.5" class="dim">MUX</text><polyline points="1024,1160 1024.0,1026.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="1031" y="1164" text-anchor="start" font-size="11" class="m"></text><polyline points="980,996 980,1014" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><text x="973" y="1009" text-anchor="end" font-size="11" class="m">32'h0</text><polyline points="980,1005 1000,1005" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="1048,976 1620,976" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round" marker-end="url(#ar)"/><polyline points="1143,983 1157,969" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="1154" y="965" text-anchor="start" font-size="10.5" class="m dim">32</text><polyline points="120,1160 1024,1160" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="120,1200 822,1200 822,530 855,530" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><polyline points="822,745 855,745" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><circle cx="822" cy="745" r="4.2" fill="currentColor"/><polyline points="120,1230 838,1230 838,552 846,552" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><polyline points="838,775 846,775" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><circle cx="838" cy="775" r="4.2" fill="currentColor"/><text x="187" y="1180" text-anchor="start" font-size="11" class="dim">flip-flop trong u_register: 2  (SR.overflow + cr_clr_q moi)  .  u_counter giu 3  .  toan IP: 5</text></svg>
+<div class="legend">
+  <span><i></i>logic gi&#7889;ng thi&#7871;t k&#7871; c&#361;</span>
+  <span><i class="n"></i>ph&#7847;n th&#234;m cho &#273;&#432;&#7901;ng
+  &#273;&#7885;c <code>CR</code></span>
+</div>
+<figcaption>
+To&#224;n b&#7897; <code>counter_top</code> c&#7911;a thi&#7871;t k&#7871;
+m&#7899;i. So v&#7899;i b&#7843;n c&#361; c&#243; &#273;&#250;ng hai
+ch&#7895; kh&#225;c: flip-flop <code>cr_clr_q</code> k&#232;m mux
+gi&#7919; m&#7913;c (&#273;&#432;&#7907;c n&#7841;p khi
+<code>cr_wr = 1</code>), v&#224; mux &#273;&#7885;c th&#7913; ba cho
+<code>cr_sel</code>. Ba mux n&#7889;i ti&#7871;p &#7913;ng &#273;&#250;ng
+v&#7899;i <code>rd_word = cr_sel ? CRword : (sr_sel ? SRword : 0)</code>
+r&#7891;i <code>rdata = rd_en ? rd_word : 0</code>. D&#7845;u ch&#7845;m
+&#273;&#7863;c l&#224; m&#7889;i n&#7889;i; hai d&#226;y c&#7855;t nhau
+kh&#244;ng c&#243; ch&#7845;m th&#236; <b>kh&#244;ng</b> n&#7889;i nhau.
+</figcaption>
+</figure>
+
+<div class="note">
+<b>Ch&#7895; d&#7877; v&#7869; sai nh&#7845;t:</b> <code>cr_clr_q</code>
+ch&#7881; &#273;i xu&#7889;ng kh&#7889;i
+<code>{30'h0, cr_clr_q, 1'b0}</code> c&#7911;a &#273;&#432;&#7901;ng
+&#273;&#7885;c. N&#243; <b>kh&#244;ng</b> n&#7889;i v&#224;o
+<code>count_clr</code> &mdash; <code>count_clr</code> v&#7851;n
+&#273;&#7871;n th&#7859;ng t&#7915; c&#7893;ng AND
+<code>cr_wr &amp; wdata[1]</code> &#7903; ph&#237;a tr&#234;n. N&#7871;u
+n&#7889;i v&#224;o th&#236; xung xo&#225; bi&#7871;n th&#224;nh
+t&#237;n hi&#7879;u m&#7913;c v&#224; b&#7897; &#273;&#7871;m
+s&#7869; b&#7883; gi&#7919; &#7903; <code>0</code>.
+</div>
+
+<h2>2. Kh&#225;c bi&#7879;t so v&#7899;i s&#417; &#273;&#7891; c&#361;</h2>
+<table>
+<thead><tr><th>H&#7841;ng m&#7909;c</th><th>Thi&#7871;t k&#7871;
+c&#361;</th><th>Thi&#7871;t k&#7871; m&#7899;i</th></tr></thead>
+<tbody>
+<tr><td>FF trong <code>u_register</code></td><td>1
+    (<code>sr_overflow</code>)</td>
+    <td><b>2</b> (th&#234;m <code>cr_clr_q</code>)</td></tr>
+<tr><td>FF to&#224;n IP</td><td>4</td><td><b>5</b></td></tr>
+<tr><td>S&#7889; mux tr&#234;n &#273;&#432;&#7901;ng &#273;&#7885;c</td>
+    <td>2</td><td><b>3</b></td></tr>
+<tr><td>&#272;&#7885;c <code>CR</code></td>
+    <td><code>32'h0</code> lu&#244;n lu&#244;n</td>
+    <td><b><code>{30'h0, cr_clr_q, 1'b0}</code></b></td></tr>
+<tr><td><code>count_clr</code></td>
+    <td><code>cr_wr &amp; wdata[1]</code>, one-shot</td>
+    <td><b>gi&#7889;ng h&#7879;t</b> &mdash; kh&#244;ng &#273;&#7893;i</td></tr>
+<tr><td><code>pulse</code>, <code>SR</code>, decode, reset</td>
+    <td>&mdash;</td><td><b>kh&#244;ng &#273;&#7893;i</b></td></tr>
+</tbody>
+</table>
+
+<h2>3. Ph&#432;&#417;ng tr&#236;nh logic</h2>
+<table>
+<thead><tr><th style="width:26%">T&#237;n hi&#7879;u</th>
+<th style="width:48%">Ph&#432;&#417;ng tr&#236;nh</th><th>Lo&#7841;i</th></tr></thead>
+<tbody>
+<tr><td><code>cr_sel</code> / <code>sr_sel</code></td>
+    <td><code>addr == 10'h000</code> / <code>addr == 10'h004</code></td>
+    <td>t&#7893; h&#7907;p</td></tr>
+<tr><td><code>cr_wr</code> / <code>sr_wr</code></td>
+    <td><code>wr_en &amp; cr_sel</code> / <code>wr_en &amp; sr_sel</code></td>
+    <td>t&#7893; h&#7907;p</td></tr>
+<tr><td><code>pulse</code></td><td><code>cr_wr &amp; wdata[0]</code></td>
+    <td>t&#7893; h&#7907;p, 1 cycle</td></tr>
+<tr><td><code>count_clr</code></td><td><code>cr_wr &amp; wdata[1]</code></td>
+    <td>t&#7893; h&#7907;p, 1 cycle</td></tr>
+<tr><td><b><code>cr_clr_q</code></b></td>
+    <td><b><code>cr_wr ? wdata[1] : cr_clr_q</code></b> &#8594; D
+    c&#7911;a FF</td><td><b>1 flip-flop (m&#7899;i)</b></td></tr>
+<tr><td><code>sr_ovf_clr</code></td><td><code>sr_wr &amp; ~wdata[3]</code></td>
+    <td>t&#7893; h&#7907;p</td></tr>
+<tr><td><code>sr_ovf_nxt</code></td>
+    <td><code>(overflow | sr_overflow) &amp; ~sr_ovf_clr</code></td>
+    <td>t&#7893; h&#7907;p &#8594; D c&#7911;a FF</td></tr>
+<tr><td><code>rd_word</code></td>
+    <td><code>cr_sel ? {30'h0, cr_clr_q, 1'b0}
+        : sr_sel ? {28'h0, sr_overflow, count} : 32'h0</code></td>
+    <td>t&#7893; h&#7907;p</td></tr>
+<tr><td><code>rdata</code></td>
+    <td><code>rd_en ? rd_word : 32'h0</code></td>
+    <td>t&#7893; h&#7907;p</td></tr>
+</tbody>
+</table>
+
+<footer>
+Ngu&#7891;n: <code>rtl_demo/register.v</code> &middot;
+<code>rtl_demo/counter_top.v</code> &middot;
+<code>rtl_demo/counter.v</code> &middot;
+<code>demo/doc/cr_readback_design.md</code>.
+S&#417; &#273;&#7891; &#273;&#432;&#7907;c v&#7869; &#273;&#7889;i
+chi&#7871;u tr&#7921;c ti&#7871;p v&#7899;i RTL; RTL &#273;&#227; qua
+<code>iverilog -g2005 -Wall</code> s&#7841;ch v&#224;
+<code>tb/counter_top/tbench.v</code> pass 23/23 check. S&#7889;
+flip-flop l&#224; &#273;&#7871;m tr&#234;n s&#417; &#273;&#7891;,
+kh&#244;ng ph&#7843;i s&#7889; li&#7879;u synthesis.
+</footer>
+
+</div>
+</body>
+</html>
