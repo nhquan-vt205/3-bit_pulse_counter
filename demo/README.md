@@ -22,7 +22,7 @@ demo/
 |---|---|
 | `rtl_demo/register.v` | **file RTL duy nhất thay đổi** — thêm `cr_clr_q` và nhánh đọc `cr_sel` |
 | `rtl_demo/counter_top.v`, `rtl_demo/counter.v` | không đổi |
-| `tb/counter_top/tbench.v` | testbench mới, DTC01–DTC04 |
+| `tb/counter_top/tbench.v` | testbench, 5 item `VP01`–`VP05` theo `doc/counter_top_vplan.xlsx` |
 | `tb/counter_top/test_bench.v` | regression TC01–TC08 cũ, **không đổi**, vẫn chạy trên `rtl/` |
 | `rtl/`, `doc/`, `ddoc/` | **không đụng tới** |
 
@@ -46,7 +46,7 @@ iverilog -g2005 -Wall -s tbench -o sim.out \
 vvp sim.out
 ```
 
-Kết quả: **4/4 testcase, 23/23 check, `[FINISH] PASS`** (Icarus Verilog 12.0).
+Kết quả: **5/5 item, 158/158 check, `[FINISH] PASS`** (Icarus Verilog 12.0).
 Chưa chạy Verilator lint, xvlog/xelab/xsim hay Vivado — không có trong môi trường này.
 
 ## Tác động lên regression cũ
