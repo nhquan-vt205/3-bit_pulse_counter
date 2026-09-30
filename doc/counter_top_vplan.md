@@ -146,7 +146,12 @@ phần tử lưu thì nó sẽ giữ `1` và `SR.cnt` sẽ mãi là `0` ⇒ chec
 | 3 | Ghi `SR = 0x0000_0007` (định ghi `cnt = 7`, bit[3] = 0), đọc `SR` | `0x0000_0005` — `cnt` **không đổi** |
 | 4 | Ghi `SR = 0xFFFF_FFFF`, đọc `SR` | `0x0000_0005` — reserved và `cnt` đều không ghi được |
 | 5 | Đọc `SR` hai lần liên tiếp không có lệnh ghi xen vào | `0x0000_0005` cả hai lần |
-| 6 | Ghi `CR = 0x1`, rồi đọc `SR` **ở cycle ngay sau** cycle ghi | `0x0000_0006` (giá trị mới thấy được ngay, không trễ thêm cycle) |
+| 6 | Ghi `CR = 0x1`, rồi đọc `SR` **ở cycle ngay sau** cycle ghi, **không có cycle trống ở giữa** | `0x0000_0006` (giá trị mới thấy được ngay, không trễ thêm cycle) |
+
+> **Lưu ý cho người viết bench ở check 6:** phải là *liền kề* — ghi ở cycle N, `rd_en` lên ở cycle
+> N+1. Nếu BFM chèn một cycle trống giữa write và read thì check này **mất tác dụng**: một hiện thực
+> sai lấy `SR.cnt` từ flip-flop (thay vì `count` real-time) vẫn sẽ pass. Đây là lỗi thật đã gặp khi
+> implement bench, phát hiện được nhờ mutation test (§13, M7).
 
 *Pass:* check 3 và 4 dùng giá trị ghi (`7`) **khác** giá trị hiện tại (`5`) nên phân biệt được "RO"
 với "ghi được"; nếu đảo thứ tự để hai giá trị trùng nhau thì check mất ý nghĩa.
@@ -275,10 +280,39 @@ Mọi feature F01–F13 đều có ít nhất một testcase phủ.
 | Hạng mục | Trạng thái |
 |---|---|
 | Vplan | **Hoàn thành** (tài liệu này) |
-| Bench `tb/counter_top/` | **Chưa tạo** — thuộc phase `vtestgen` |
-| Kết quả chạy | **Chưa có** |
+| Bench | **Hoàn thành**: `tb/counter_top/test_bench.v` — một file Verilog-2005 chứa cả TC01–TC08 |
+| Kết quả chạy | **8/8 testcase PASS, 154/154 check PASS**, token `[FINISH] PASS` (Icarus Verilog 12.0) |
+| Công cụ | `iverilog -g2005 -Wall` + `vvp`. **Chưa chạy** Verilator lint, xvlog/xelab/xsim, Vivado — không có trong môi trường |
 
-Các giá trị `Exp` trong §6 **không phải phỏng đoán**: chúng đã được đối chiếu với `rtl/` bằng một
-bench probe tạm (chạy ngoài repo, bằng Icarus Verilog) trong lúc soạn Vplan. Điều đó có nghĩa các
-testcase này mô tả đúng hành vi *hiện tại* của RTL; chúng vẫn là ràng buộc lấy từ spec/proposal, nên
-nếu một check fail thì phải truy lại spec chứ không mặc định sửa kỳ vọng theo RTL.
+Bench được implement thành **một file duy nhất** (`test_bench.v`) theo yêu cầu, thay vì cấu trúc
+`tb/<ip>/tb_<name>.sv` một-file-một-testcase mà `CLAUDE.md` quy định. Hệ quả: chỉ có **một** token
+`[FINISH]` cho toàn bộ lần chạy, kèm dòng tóm tắt PASS/FAIL riêng cho từng TC. Mỗi TC tự reset DUT ở
+đầu nên vẫn độc lập với nhau.
+
+Các giá trị `Exp` trong §6 **không phải phỏng đoán**: chúng đã được đối chiếu với `rtl/` bằng bench
+probe tạm trong lúc soạn Vplan, và sau đó bởi chính `test_bench.v`. Chúng vẫn là ràng buộc lấy từ
+spec/proposal, nên nếu một check fail thì phải truy lại spec chứ không mặc định sửa kỳ vọng theo RTL.
+
+## 13. Mutation test — đo khả năng phát hiện lỗi của bench
+
+Bench pass trên RTL đúng **không** chứng minh nó bắt được lỗi. Để đo, 7 bug được tiêm vào bản copy
+của `rtl/` (chạy ngoài repo, RTL trong repo không bị sửa) rồi chạy lại `test_bench.v`:
+
+| # | Bug được tiêm | Kết quả | TC bắt được |
+|---|---|---|---|
+| M1 | `CR.count_clr` thành bit `RW` có phần tử lưu (phá O1) | **bắt được** | TC03 |
+| M2 | `rdata` thành có pipeline (phá O4) | **bắt được** | TC02–TC08 |
+| M3 | `SR.overflow`: `set` đè `clear` (phá O3) | **KHÔNG bắt được** | — |
+| M4 | Decode word-aligned, bỏ 2 bit thấp (phá O5) | **bắt được** | TC02 |
+| M5 | Reset thành đồng bộ (phá O6) | **bắt được** | TC08 |
+| M6 | `SR.overflow` tự clear khi có pulse kế tiếp | **bắt được** | TC04–TC08 |
+| M7 | `SR.cnt` readback lấy từ flip-flop thay vì `count` real-time | **bắt được** | TC04 |
+
+**Tỷ lệ bắt: 6/7.** Trường hợp duy nhất trượt là **M3**, và đó **đúng như rủi ro R1 đã dự đoán**:
+không thể dựng được va chạm `set`/`clear` của `SR.overflow` trên một bus CPU đơn, nên bench ở mức IP
+về nguyên tắc không phân biệt được O3 đúng hay sai. Kết quả mutation test này là bằng chứng thực
+nghiệm cho R1, không phải một lỗ hổng mới.
+
+M7 ban đầu **cũng trượt** ở phiên bản bench đầu tiên vì BFM chèn một cycle trống giữa write và read.
+Đã sửa bằng task `cpu_write_then_read_chk` (write cycle N, read cycle N+1, không gap) — xem lưu ý ở
+TC04 check 6.
