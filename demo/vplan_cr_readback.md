@@ -1,6 +1,7 @@
 # Vplan (demo) — `counter_top` với `CR.count_clr` đọc được
 
-> **DUT:** `demo/rtl_demo/` · **Bench:** `demo/tbench.v` · **Thiết kế:** `demo/doc/cr_readback_design.md`
+> **DUT:** `rtl_demo/` (bản cố định tham số) · **Bench:** `tb/counter_top/tbench.v`
+> **Thiết kế:** `demo/doc/cr_readback_design.md`
 > **Phạm vi:** vài directed test đơn giản theo đúng tinh thần Vplan cũ
 > (`doc/counter_top_vplan.md`), **cộng thêm** phần kiểm tra đường đọc mới của `CR`.
 > Bản này **không** phủ lại toàn bộ 13 feature của Vplan cũ — xem §5.
@@ -106,7 +107,7 @@ không đổi.
 
 ## 6. Tiêu chí PASS/FAIL
 
-Mỗi check self-check trong `demo/tbench.v`; in một dòng PASS/FAIL cho từng DTC và **đúng một** token
+Mỗi check self-check trong `tb/counter_top/tbench.v`; in một dòng PASS/FAIL cho từng DTC và **đúng một** token
 `[FINISH] PASS` / `[FINISH] FAIL` ở cuối. Một DTC PASS khi toàn bộ check của nó đúng.
 
 ## 7. Trạng thái
@@ -114,7 +115,7 @@ Mỗi check self-check trong `demo/tbench.v`; in một dòng PASS/FAIL cho từn
 | Hạng mục | Trạng thái |
 |---|---|
 | Vplan | Hoàn thành (tài liệu này) |
-| Bench | `demo/tbench.v` |
+| Bench | `tb/counter_top/tbench.v` |
 | Kết quả chạy | **4/4 DTC PASS, 23/23 check PASS**, `[FINISH] PASS` (Icarus Verilog 12.0) |
 | Kiểm tra khả năng bắt lỗi | Tiêm bug `count_clr = cr_clr_q` (phương án A) vào bản copy RTL → **DTC03 fail ở check 4 và 5**, `[FINISH] FAIL`. Ba DTC còn lại vẫn PASS, đúng như mong đợi: chỉ DTC03 được thiết kế để bắt ca này |
 | Verilator / xsim / Vivado | Chưa chạy — không có trong môi trường |

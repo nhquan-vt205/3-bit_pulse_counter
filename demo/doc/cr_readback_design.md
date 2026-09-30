@@ -4,7 +4,7 @@
 > `rtl/`, `doc/`, `tb/`.
 > **Gốc:** `ddoc/3-bit_pulse_counter_spec.md` · `ddoc/counter_top_proposal.md` · `rtl/register.v`
 > **Sơ đồ:** `demo/doc/cr_readback_diagram.html`
-> **RTL:** `demo/rtl_demo/register.v` (chỉ file này đổi)
+> **RTL:** `rtl_demo/register.v` (chỉ file này đổi) · **Bench:** `tb/counter_top/tbench.v`
 
 ---
 
@@ -50,7 +50,7 @@ không đụng tới.
 
 ## 3. Thay đổi RTL
 
-Chỉ `demo/rtl_demo/register.v`. Hai chỗ:
+Chỉ `rtl_demo/register.v`. Hai chỗ:
 
 **(a) Thêm flip-flop shadow** — nạp giá trị `wdata[1]` mỗi khi có lệnh ghi vào `CR`:
 
@@ -130,8 +130,9 @@ Dòng 4 là dòng quan trọng nhất: sau khi ghi `1` ở dòng 3, counter **v�
 
 ## 7. Những gì **không** đổi
 
-- `rtl/`, `doc/`, `tb/`, `ddoc/` của luồng chính — bản demo này nằm hoàn toàn trong `demo/`.
-- `counter.v` và `counter_top.v` chỉ là bản sao y nguyên, để `demo/rtl_demo/` compile độc lập được.
+- `rtl/`, `doc/`, `ddoc/` và `tb/counter_top/test_bench.v` của luồng chính — thay đổi chỉ nằm trong
+  `rtl_demo/register.v` và `tb/counter_top/tbench.v`.
+- `rtl_demo/counter.v` và `rtl_demo/counter_top.v` không đổi.
 - Toàn bộ hành vi của `SR`, của bộ đếm, và của `CR.pulse_en`.
 - Các quyết định O2 (clear thắng pulse), O3 (clear thắng set), O4, O5, O6.
 
@@ -139,6 +140,7 @@ Dòng 4 là dòng quan trọng nhất: sau khi ghi `1` ở dòng 3, counter **v�
 
 | Hạng mục | Kết quả |
 |---|---|
-| `iverilog -g2005 -Wall` trên `demo/rtl_demo/` | sạch, không cảnh báo |
-| `demo/tbench.v` (Vplan `demo/vplan_cr_readback.md`) | xem mục Trạng thái của Vplan |
+| `iverilog -g2005 -Wall` trên `rtl_demo/` | sạch, không cảnh báo |
+| `tb/counter_top/tbench.v` (Vplan `demo/vplan_cr_readback.md`) | 4/4 DTC, 23/23 check, `[FINISH] PASS` |
+| Regression TC01–TC08 cũ trên RTL mới | 153/154 pass; 1 fail là TC03 check 3, đúng như mong đợi |
 | Verilator lint / xsim / Vivado | **chưa chạy** — không có trong môi trường |

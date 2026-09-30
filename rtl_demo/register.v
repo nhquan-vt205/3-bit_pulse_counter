@@ -6,10 +6,15 @@
 //          - Address decode for CR (0x000) and SR (0x004).
 //          - Combinational one-shot generation of `pulse` and `count_clr`.
 //          - SR.overflow flip-flop (RW0C): clear beats set when concurrent.
-//          - Read mux: CR reads back 0, SR reads {28'h0, sr_overflow, count}.
+//          - CR.count_clr is READABLE: a shadow flip-flop records the last
+//            value written to CR[1] so the CPU can read it back. The clear
+//            itself stays a one-shot pulse - see §4.3b.
+//          - Read mux: CR reads {30'h0, cr_clr_q, 1'b0},
+//                      SR reads {28'h0, sr_overflow, count}.
 //          - rdata gated by rd_en (0 when rd_en deasserted).
-//          Contains 1 flip-flop (sr_overflow).
+//          Contains 2 flip-flops (sr_overflow, cr_clr_q).
 //          Async active-low reset.
+// Design : demo/doc/cr_readback_design.md
 // =============================================================================
 
 module register (
@@ -45,6 +50,7 @@ module register (
     wire        sr_ovf_clr;
     wire        sr_ovf_nxt;
     reg         sr_overflow;
+    reg         cr_clr_q;      // readback shadow of CR.count_clr
     reg  [31:0] rd_word;
 
     // =========================================================================
@@ -68,6 +74,25 @@ module register (
     assign count_clr = cr_wr & wdata[CR_CLR_BIT];
 
     // =========================================================================
+    // §4.3b CR.count_clr readback shadow
+    //   Records what the CPU last wrote to CR[1] so the bit can be read back.
+    //   It is a PURE OBSERVER: `count_clr` above is still taken straight from
+    //   cr_wr & wdata[1], so the clear stays a one-shot pulse, and this
+    //   flip-flop drives nothing except the read mux below.
+    //
+    //   Do NOT rewrite the line above as `count_clr = cr_clr_q`. That would
+    //   turn the clear into a level: after one write of 1 the counter would be
+    //   pinned at 0 until the CPU wrote 0 back - the failure mode that made
+    //   this field a one-shot in the first place.
+    //
+    //   Async active-low reset → cr_clr_q = 0
+    // =========================================================================
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)     cr_clr_q <= 1'b0;
+        else if (cr_wr) cr_clr_q <= wdata[CR_CLR_BIT];
+    end
+
+    // =========================================================================
     // §4.4 SR.overflow flip-flop (RW0C)
     //   sr_ovf_clr sits on the final gate, so a CPU write of 0 overrides both
     //   the set path and the hold path: clear wins over set in the same cycle.
@@ -84,13 +109,16 @@ module register (
 
     // =========================================================================
     // §4.5 Read mux — combinational
-    //   CR and unmapped addresses both read back all zeros, which is the
-    //   default assignment below. SR.cnt is taken straight from the counter
-    //   output, so it is a real-time value.
+    //   Unmapped addresses read back all zeros, the default assignment below.
+    //   SR.cnt is taken straight from the counter output, so it is real-time.
+    //   The cr_sel branch returns cr_clr_q on bit[1] and leaves every other
+    //   bit at 0, so CR.pulse_en and the reserved bits still read back 0.
     // =========================================================================
     always @(*) begin
         rd_word = 32'h0;
-        if (sr_sel) begin
+        if (cr_sel) begin
+            rd_word[CR_CLR_BIT] = cr_clr_q;
+        end else if (sr_sel) begin
             rd_word[2:0]        = count;
             rd_word[SR_OVF_BIT] = sr_overflow;
         end
