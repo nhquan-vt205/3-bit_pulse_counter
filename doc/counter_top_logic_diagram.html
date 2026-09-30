@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Counter Top Schematic</title>
+<style>
+  :root {
+    --bg:      #f7f7f5;
+    --panel:   #ffffff;
+    --ink:     #17181c;
+    --dim:     #6b6f76;
+    --line:    #c9ccd1;
+    --unit:    #f0f1f3;
+    --accent:  #1f6f8b;
+    --chip:    #e9ecef;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:     #141518;
+      --panel:  #1c1e22;
+      --ink:    #e6e7ea;
+      --dim:    #9aa0a8;
+      --line:   #3a3e45;
+      --unit:   #23262b;
+      --accent: #63b6cf;
+      --chip:   #2a2e34;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#141518; --panel:#1c1e22; --ink:#e6e7ea; --dim:#9aa0a8;
+    --line:#3a3e45; --unit:#23262b; --accent:#63b6cf; --chip:#2a2e34;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height:1.55;
+  }
+  .wrap { max-width:1180px; margin:0 auto; padding:40px 16px 72px; }
+  header { border-bottom:1px solid var(--line); padding-bottom:22px;
+           margin-bottom:34px; }
+  h1 { font-size:clamp(20px,3.4vw,28px); margin:0 0 6px; letter-spacing:-.01em; }
+  h2 { font-size:clamp(16px,2.4vw,20px); margin:44px 0 6px;
+        letter-spacing:-.01em; }
+  .sub { color:var(--dim); font-size:14px; margin:0; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .chip { background:var(--chip); border:1px solid var(--line);
+           border-radius:999px; padding:3px 11px; font-size:12.5px;
+           font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  figure { margin:18px 0 0; background:var(--panel);
+            border:1px solid var(--line); border-radius:10px;
+            padding:18px 16px 12px; overflow:hidden; }
+  figure svg { display:block; width:100%; max-width:100%; height:auto;
+                color:var(--ink); }
+  figcaption { color:var(--dim); font-size:12.5px; margin-top:14px;
+                padding-top:12px; border-top:1px solid var(--line); }
+  svg .outer { fill:none; stroke:var(--ink); stroke-width:2;
+                stroke-dasharray:9 6; }
+  svg .unit  { fill:var(--unit); stroke:var(--line); stroke-width:1.6; }
+  svg .bb    { stroke-dasharray:7 5; }
+  svg .cell  { fill:var(--panel); stroke:var(--ink); stroke-width:1.6; }
+  svg .gate  { fill:var(--panel); stroke:var(--ink); stroke-width:1.6; }
+  svg text   { fill:currentColor;
+                font-family: ui-sans-serif, system-ui, sans-serif; }
+  svg text.m { font-family: ui-monospace,SFMono-Regular,Menlo,monospace; }
+  svg .dim   { fill:var(--dim); }
+  svg .ttl   { fill:var(--ink); }
+  svg .ttl2  { fill:var(--accent); }
+  table { border-collapse:collapse; width:100%; font-size:13px;
+           margin-top:14px; }
+  th,td { border:1px solid var(--line); padding:7px 10px; text-align:left;
+           vertical-align:top; }
+  th { background:var(--unit); font-weight:600; }
+  code, .mono { font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+                 font-size:12.5px; }
+  p { font-size:14px; }
+  ul { font-size:14px; padding-left:22px; }
+  .note { background:var(--unit); border:1px solid var(--line);
+           border-left:3px solid var(--accent); border-radius:6px;
+           padding:12px 14px; font-size:13.5px; margin-top:16px; }
+  footer { margin-top:52px; padding-top:18px; border-top:1px solid var(--line);
+            color:var(--dim); font-size:12.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>counter_top &mdash; s&#417; &#273;&#7891; logic chi ti&#7871;t</h1>
+  <p class="sub">Kh&#7889;i <code>u_register</code> v&#7869; &#273;&#7847;y
+  &#273;&#7911; t&#7899;i m&#7913;c c&#7893;ng / flip-flop / mux.
+  Kh&#7889;i <code>u_counter</code> &#273;&#7873; black box.</p>
+  <div class="chips">
+    <span class="chip">CNT_W = 3</span>
+    <span class="chip">DATA_W = 32</span>
+    <span class="chip">ADDR_W = 10</span>
+    <span class="chip">CR = 0x000</span>
+    <span class="chip">SR = 0x004</span>
+    <span class="chip">reset: async, active&#8209;low</span>
+  </div>
+</header>
+
+<h2>1. S&#417; &#273;&#7891; t&#7893;ng</h2>
+<figure>
+<svg viewBox="0 0 1700 1100" role="img" aria-label="Gate level schematic of counter_top: the register block drawn as address comparators, AND gates generating pulse and count_clr, the SR.overflow flip-flop whose final AND gate lets a clear override a set, and two 32-bit read multiplexers; the counter block is a black box exchanging pulse, count_clr, overflow and count with the register."><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="currentColor"/></marker></defs><rect x="120" y="70" width="1380" height="1000" rx="8" class="outer"/><text x="132" y="92" text-anchor="start" font-size="15" font-weight="600" class="ttl">counter_top</text><rect x="175" y="100" width="900" height="885" rx="6" class="unit"/><text x="1063" y="122" text-anchor="end" font-size="13.5" font-weight="600" class="ttl2">u_register</text><rect x="1150" y="250" width="280" height="270" rx="6" class="unit bb"/><text x="1290" y="288" text-anchor="middle" font-size="14" font-weight="600" class="ttl2">u_counter</text><text x="1290" y="308" text-anchor="middle" font-size="11" class="dim">black box</text><circle cx="120" cy="120" r="3.6" fill="currentColor"/><text x="111" y="124.5" text-anchor="end" font-size="12.5" class="m">wr_en</text><circle cx="120" cy="215" r="3.6" fill="currentColor"/><text x="111" y="219.5" text-anchor="end" font-size="12.5" class="m">addr[9:0]</text><circle cx="120" cy="330" r="3.6" fill="currentColor"/><text x="111" y="334.5" text-anchor="end" font-size="12.5" class="m">wdata[31:0]</text><circle cx="120" cy="905" r="3.6" fill="currentColor"/><text x="111" y="909.5" text-anchor="end" font-size="12.5" class="m">rd_en</text><circle cx="120" cy="1015" r="3.6" fill="currentColor"/><text x="111" y="1019.5" text-anchor="end" font-size="12.5" class="m">clk</text><circle cx="120" cy="1042" r="3.6" fill="currentColor"/><text x="111" y="1046.5" text-anchor="end" font-size="12.5" class="m">rst_n</text><circle cx="1500" cy="815" r="3.6" fill="currentColor"/><text x="1509" y="819.5" text-anchor="start" font-size="12.5" class="m">rdata[31:0]</text><polyline points="120,215 205,215" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><polyline points="153,222 167,208" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="164" y="204" text-anchor="start" font-size="10.5" class="m dim">10</text><polyline points="205,163 205,243" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><circle cx="205" cy="215" r="4.2" fill="currentColor"/><polyline points="205,163 250,163" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round" marker-end="url(#ar)"/><polyline points="205,243 250,243" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round" marker-end="url(#ar)"/><rect x="250" y="138" width="165" height="50" rx="3" class="cell"/><text x="332" y="158" text-anchor="middle" font-size="12" class="m">addr == 10'h000</text><text x="332" y="176" text-anchor="middle" font-size="11" class="dim">CR select</text><rect x="250" y="218" width="165" height="50" rx="3" class="cell"/><text x="332" y="238" text-anchor="middle" font-size="12" class="m">addr == 10'h004</text><text x="332" y="256" text-anchor="middle" font-size="11" class="dim">SR select</text><polyline points="415,163 465,163" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="462" y="155" text-anchor="end" font-size="10.5" class="m">cr_sel</text><polyline points="415,243 465,243" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="462" y="235" text-anchor="end" font-size="10.5" class="m">sr_sel</text><polyline points="120,120 445,120 445,181 465,181" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="445,181 445,261 465,261" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="445" cy="181" r="4.2" fill="currentColor"/><path d="M 465 150 L 484.32 150 A 26.68 22.0 0 0 1 484.32 194 L 465 194 Z" class="gate"/><path d="M 465 230 L 484.32 230 A 26.68 22.0 0 0 1 484.32 274 L 465 274 Z" class="gate"/><text x="552" y="167" text-anchor="start" font-size="11" class="m">cr_wr</text><text x="526" y="246" text-anchor="start" font-size="11" class="m">sr_wr</text><polyline points="420,243 420,300 1035,300 1035,935 634,935" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="420" cy="243" r="4.2" fill="currentColor"/><text x="870" y="928" text-anchor="start" font-size="11" class="m">sr_sel</text><polyline points="511,172 545,172 545,353 600,353" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="545,353 545,423 600,423" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="545" cy="353" r="4.2" fill="currentColor"/><polyline points="120,330 230,330" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><polyline points="168,337 182,323" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="179" y="319" text-anchor="start" font-size="10.5" class="m dim">32</text><polyline points="230,330 230,575" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><polyline points="230,371 600,371" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="230" cy="371" r="4.2" fill="currentColor"/><text x="250" y="364" text-anchor="start" font-size="11" class="m">wdata[0]</text><polyline points="230,441 600,441" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="230" cy="441" r="4.2" fill="currentColor"/><text x="250" y="434" text-anchor="start" font-size="11" class="m">wdata[1]</text><polyline points="230,575 545,575" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="250" y="568" text-anchor="start" font-size="11" class="m">wdata[3]</text><path d="M 600 340 L 619.32 340 A 26.68 22.0 0 0 1 619.32 384 L 600 384 Z" class="gate"/><path d="M 600 410 L 619.32 410 A 26.68 22.0 0 0 1 619.32 454 L 600 454 Z" class="gate"/><polyline points="646,362.0 1150,362" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="700" y="355" text-anchor="start" font-size="12" class="m">pulse</text><polyline points="646,432.0 1150,432" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="700" y="425" text-anchor="start" font-size="12" class="m">count_clr</text><path d="M 545 560.0 L 579 575 L 545 590.0 Z" class="gate"/><circle cx="583.5" cy="575" r="4.5" class="gate"/><polyline points="511,252 520,252 520,540 650,540" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="588,575 650,575" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M 650 527 L 669.32 527 A 26.68 30.5 0 0 1 669.32 588 L 650 588 Z" class="gate"/><text x="702" y="550.5" text-anchor="start" font-size="11" class="m">sr_ovf_clr</text><path d="M 650 619 Q 682.24 619 702 649.5 Q 682.24 680 650 680 Q 663.52 649.5 650 619 Z" class="gate"/><text x="652" y="610" text-anchor="start" font-size="11" class="m">set_or_hold</text><path d="M 765 579 L 784.32 579 A 26.68 41.5 0 0 1 784.32 662 L 765 662 Z" class="gate"/><circle cx="760.5" cy="592" r="4.5" class="gate"/><polyline points="696,557.5 735,557.5 735,592 756,592" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="702,649.5 765,649" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="766" y="574" text-anchor="start" font-size="11" class="m">sr_ovf_nxt</text><rect x="855" y="582" width="100" height="110" rx="3" class="cell"/><text x="864" y="611" text-anchor="start" font-size="12" class="m">D</text><text x="946" y="611" text-anchor="end" font-size="12" class="m">Q</text><path d="M 861 635 L 872 642 L 861 649 Z" class="gate"/><circle cx="850.5" cy="672" r="4.5" class="gate"/><text x="864" y="676" text-anchor="start" font-size="10.5" class="m">CLR_N</text><text x="905.0" y="573" text-anchor="middle" font-size="11.5" class="dim">FF  SR.overflow</text><polyline points="811,620.5 830,620.5 830,607 855,607" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="955,607 985,607 985,706 250,706" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="996" y="602" text-anchor="start" font-size="11.5" class="m">sr_overflow</text><polyline points="625,706 625,667 650,667" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><circle cx="625" cy="706" r="4.2" fill="currentColor"/><polyline points="250,706 250,770 270,770" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><polyline points="1430,420 1445,420 1445,724 640,724 640,632 650,632" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="1000" y="717" text-anchor="start" font-size="11.5" class="m">overflow</text><rect x="270" y="750" width="260" height="70" rx="3" class="cell"/><text x="400" y="778" text-anchor="middle" font-size="10.5" class="m">{ 28'h0 , sr_overflow , count[2:0] }</text><text x="400" y="796" text-anchor="middle" font-size="10.5" class="dim">SR read word</text><polyline points="215,800 270,800" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round" marker-end="url(#ar)"/><polyline points="530,785 555,785 555,770 610,770" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><polyline points="537,792 551,778" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="548" y="774" text-anchor="start" font-size="10.5" class="m dim">32</text><path d="M 610 742 L 658 762.4 L 658 841.6 L 610 862 Z" class="cell"/><text x="618" y="774" text-anchor="start" font-size="11.5" class="m">1</text><text x="618" y="834" text-anchor="start" font-size="11.5" class="m">0</text><text x="634.0" y="806.0" text-anchor="middle" font-size="10.5" class="dim">MUX</text><polyline points="634,935 634.0,857.92" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="641" y="939" text-anchor="start" font-size="11" class="m">sr_sel</text><polyline points="568,821 568,839" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><text x="561" y="834" text-anchor="end" font-size="11" class="m">32'h0</text><polyline points="568,830 610,830" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="664" y="778" text-anchor="start" font-size="11" class="m">rd_word</text><polyline points="658,800 700,800 700,785 730,785" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><path d="M 730 757 L 778 777.4 L 778 856.6 L 730 877 Z" class="cell"/><text x="738" y="789" text-anchor="start" font-size="11.5" class="m">1</text><text x="738" y="849" text-anchor="start" font-size="11.5" class="m">0</text><text x="754.0" y="821.0" text-anchor="middle" font-size="10.5" class="dim">MUX</text><polyline points="754,905 754.0,872.92" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="761" y="909" text-anchor="start" font-size="11" class="m">rd_en</text><polyline points="706,836 706,854" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><text x="699" y="849" text-anchor="end" font-size="11" class="m">32'h0</text><polyline points="706,845 730,845" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="778,815 1500,815" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round" marker-end="url(#ar)"/><polyline points="873,822 887,808" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="884" y="804" text-anchor="start" font-size="10.5" class="m dim">32</text><polyline points="120,905 754,905" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="1430,460 1465,460 1465,945 215,945 215,800" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><text x="1120" y="938" text-anchor="start" font-size="11.5" class="m">count[2:0]</text><polyline points="1458,627 1472,613" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="1469" y="609" text-anchor="start" font-size="10.5" class="m dim">3</text><polyline points="120,1015 822,1015 822,642 855,642" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><polyline points="120,1042 838,1042 838,672 846,672" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><polyline points="1100,1015 1100,470 1150,470" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><circle cx="1100" cy="1015" r="4.2" fill="currentColor"/><polyline points="1120,1042 1120,495 1150,495" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><circle cx="1120" cy="1042" r="4.2" fill="currentColor"/><text x="1158" y="466" text-anchor="start" font-size="11" class="m">clk</text><text x="1158" y="491" text-anchor="start" font-size="11" class="m">rst_n</text><text x="1290" y="352" text-anchor="middle" font-size="11.5" class="m dim">count_nxt mux  .  +1</text><text x="1290" y="376" text-anchor="middle" font-size="11.5" class="m dim">3 x FF  count[2:0]</text><text x="1290" y="400" text-anchor="middle" font-size="11.5" class="m dim">cnt_max = &count</text><text x="1290" y="424" text-anchor="middle" font-size="11.5" class="m dim">overflow =</text><text x="1290" y="444" text-anchor="middle" font-size="10.5" class="m dim">pulse & ~count_clr & cnt_max</text><text x="1290" y="476" text-anchor="middle" font-size="10.5" class="dim">internals not drawn</text><text x="187" y="972" text-anchor="start" font-size="11" class="dim">sequential elements in u_register: 1 flip-flop (SR.overflow)  .  u_counter holds the other 3</text></svg>
+<figcaption>
+To&#224;n b&#7897; <code>counter_top</code> v&#7899;i c&#7845;u h&#236;nh
+c&#7889; &#273;&#7883;nh 3&#8209;bit count / 32&#8209;bit wdata /
+10&#8209;bit addr. B&#7841;n c&#243; th&#7875; &#273;&#7871;m
+&#273;&#432;&#7907;c tr&#234;n h&#236;nh: <b>ch&#7881; m&#7897;t
+flip-flop</b> n&#7857;m trong <code>u_register</code>
+(<code>SR.overflow</code>), ba flip-flop c&#242;n l&#7841;i
+(<code>count[2:0]</code>) n&#7857;m trong black box. M&#7885;i
+&#273;&#432;&#7901;ng <code>pulse</code>, <code>count_clr</code>,
+<code>overflow</code>, <code>rdata</code> &#273;&#7873;u thu&#7847;n
+t&#7893; h&#7907;p. D&#7845;u ch&#7845;m &#273;&#7863;c l&#224;
+m&#7889;i n&#7889;i; hai d&#226;y c&#7855;t nhau kh&#244;ng c&#243;
+ch&#7845;m th&#236; <b>kh&#244;ng</b> n&#7889;i nhau.
+</figcaption>
+</figure>
+
+<div class="note">
+<b>&#272;i&#7875;m c&#7847;n &#273;&#7885;c k&#7929; tr&#234;n
+h&#236;nh:</b> c&#7893;ng AND cu&#7889;i c&#249;ng t&#7841;o
+<code>sr_ovf_nxt</code> c&#243; <b>b&#243;ng (bubble) &#7903;
+&#273;&#7847;u v&#224;o <code>sr_ovf_clr</code></b> v&#224; n&#7857;m
+<b>sau</b> c&#7893;ng OR. &#272;&#243; ch&#237;nh l&#224; ch&#7895;
+hi&#7879;n th&#7909;c quy&#7871;t &#273;&#7883;nh O3:
+<i>clear &#273;&#232; set</i>. N&#7871;u &#273;&#7893;i th&#7913;
+t&#7921; hai c&#7893;ng n&#224;y th&#236; th&#224;nh
+<i>set &#273;&#232; clear</i> &mdash; m&#7897;t thi&#7871;t
+k&#7871; kh&#225;c h&#7859;n.
+</div>
+
+<h2>2. &#272;&#432;&#7901;ng &#273;&#7885;c &#7903; m&#7913;c bit</h2>
+<figure>
+<svg viewBox="0 0 1460 530" role="img" aria-label="The 32-bit read path reduced to four AND gates fed by a common rd_sr term, plus 28 hardwired zero bits, for the fixed data width."><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="currentColor"/></marker></defs><circle cx="190" cy="90" r="3.6" fill="currentColor"/><text x="181" y="94.5" text-anchor="end" font-size="12.5" class="m">rd_en</text><circle cx="190" cy="130" r="3.6" fill="currentColor"/><text x="181" y="134.5" text-anchor="end" font-size="12.5" class="m">sr_sel</text><path d="M 280 77 L 299.32 77 A 26.68 33.0 0 0 1 299.32 143 L 280 143 Z" class="gate"/><polyline points="190,90 280,90" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="190,130 280,130" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="332" y="102.0" text-anchor="start" font-size="11.5" class="m">rd_sr</text><polyline points="326,110 380,110 380,452" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="190" cy="200" r="3.6" fill="currentColor"/><text x="181" y="204.5" text-anchor="end" font-size="12.5" class="m">sr_overflow</text><polyline points="190,200 460,200" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="380,182 460,182" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="380" cy="182" r="4.2" fill="currentColor"/><path d="M 460 169 L 479.32 169 A 26.68 22.0 0 0 1 479.32 213 L 460 213 Z" class="gate"/><polyline points="506,191.0 580,191.0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="588" y="195.5" text-anchor="start" font-size="12" class="m">rdata[3]</text><circle cx="190" cy="290" r="3.6" fill="currentColor"/><text x="181" y="294.5" text-anchor="end" font-size="12.5" class="m">count[2]</text><polyline points="190,290 460,290" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="380,272 460,272" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="380" cy="272" r="4.2" fill="currentColor"/><path d="M 460 259 L 479.32 259 A 26.68 22.0 0 0 1 479.32 303 L 460 303 Z" class="gate"/><polyline points="506,281.0 580,281.0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="588" y="285.5" text-anchor="start" font-size="12" class="m">rdata[2]</text><circle cx="190" cy="380" r="3.6" fill="currentColor"/><text x="181" y="384.5" text-anchor="end" font-size="12.5" class="m">count[1]</text><polyline points="190,380 460,380" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="380,362 460,362" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="380" cy="362" r="4.2" fill="currentColor"/><path d="M 460 349 L 479.32 349 A 26.68 22.0 0 0 1 479.32 393 L 460 393 Z" class="gate"/><polyline points="506,371.0 580,371.0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="588" y="375.5" text-anchor="start" font-size="12" class="m">rdata[1]</text><circle cx="190" cy="470" r="3.6" fill="currentColor"/><text x="181" y="474.5" text-anchor="end" font-size="12.5" class="m">count[0]</text><polyline points="190,470 460,470" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="380,452 460,452" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="380" cy="452" r="4.2" fill="currentColor"/><path d="M 460 439 L 479.32 439 A 26.68 22.0 0 0 1 479.32 483 L 460 483 Z" class="gate"/><polyline points="506,461.0 580,461.0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="588" y="465.5" text-anchor="start" font-size="12" class="m">rdata[0]</text><polyline points="760,451 760,469" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><text x="753" y="464" text-anchor="end" font-size="11" class="m">28'h0</text><polyline points="760,460 850,460" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="858" y="464.5" text-anchor="start" font-size="12" class="m">rdata[31:4]</text><text x="722" y="492" text-anchor="start" font-size="11" class="dim">28 bits tied to zero, no logic</text><rect x="660" y="60" width="760" height="340" rx="5" class="cell"/><text x="1040" y="92" text-anchor="middle" font-size="12" class="dim">equivalent to the two muxes of figure 1</text><text x="684" y="132" text-anchor="start" font-size="12" class="m">rd_word = sr_sel ? {28'h0, sr_overflow, count} : 32'h0</text><text x="684" y="162" text-anchor="start" font-size="12" class="m">rdata   = rd_en  ? rd_word : 32'h0</text><polyline points="684,186 1396,186" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round" stroke-dasharray="4 4"/><text x="684" y="222" text-anchor="start" font-size="12" class="m">rd_sr       = rd_en & sr_sel</text><text x="684" y="252" text-anchor="start" font-size="12" class="m">rdata[3]    = rd_sr & sr_overflow</text><text x="684" y="282" text-anchor="start" font-size="12" class="m">rdata[2:0]  = rd_sr & count[2:0]</text><text x="684" y="312" text-anchor="start" font-size="12" class="m">rdata[31:4] = 28'h0        (hardwired)</text><text x="684" y="356" text-anchor="start" font-size="11.5" class="dim">no flip-flop on this path: rdata is valid in the same cycle as rd_en</text></svg>
+<figcaption>
+V&#236; <code>DATA_W</code> c&#7889; &#273;&#7883;nh 32 v&#224;
+<code>CR</code> lu&#244;n &#273;&#7885;c v&#7873; 0, hai mux 32&#8209;bit
+&#7903; h&#236;nh 1 r&#250;t g&#7885;n th&#224;nh <b>4 c&#7893;ng AND</b>
+c&#7897;ng 28 bit n&#7889;i c&#7913;ng 0. Hai c&#225;ch v&#7869;
+t&#432;&#417;ng &#273;&#432;&#417;ng nhau v&#7873;
+ch&#7913;c n&#259;ng.
+</figcaption>
+</figure>
+
+<h2>3. Hai b&#7897; so s&#225;nh &#273;&#7883;a ch&#7881;</h2>
+<figure>
+<svg viewBox="0 0 1300 300" role="img" aria-label="The two address comparators for the fixed 10-bit address: cr_sel is a 10-input NOR, sr_sel is addr bit 2 ANDed with a NOR of the other nine bits."><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 1 L 9 5 L 0 9 z" fill="currentColor"/></marker></defs><text x="190" y="44" text-anchor="start" font-size="13" font-weight="600" class="ttl2">cr_sel</text><circle cx="210" cy="100" r="3.6" fill="currentColor"/><text x="201" y="104.5" text-anchor="end" font-size="12.5" class="m">addr[9:0]</text><polyline points="210,100 300,100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><polyline points="248,107 262,93" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><text x="259" y="89" text-anchor="start" font-size="10.5" class="m dim">10</text><path d="M 300 74 Q 339.68 74 364 100.0 Q 339.68 126 300 126 Q 316.64 100.0 300 74 Z" class="gate"/><text x="326.88" y="104.0" text-anchor="middle" font-size="11" class="dim">NOR</text><circle cx="368.5" cy="100.0" r="4.5" class="gate"/><text x="306" y="152" text-anchor="start" font-size="11" class="m dim">all 10 bits</text><polyline points="373,100.0 470,100" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="478" y="104.5" text-anchor="start" font-size="12.5" class="m">cr_sel</text><text x="190" y="215" text-anchor="start" font-size="11.5" class="m dim">0x000 = 10'b00_0000_0000</text><text x="190" y="237" text-anchor="start" font-size="11.5" class="m">cr_sel = ~( |addr[9:0] )</text><text x="700" y="44" text-anchor="start" font-size="13" font-weight="600" class="ttl2">sr_sel</text><circle cx="720" cy="92" r="3.6" fill="currentColor"/><text x="711" y="96.5" text-anchor="end" font-size="12.5" class="m">addr[9:3]</text><circle cx="720" cy="124" r="3.6" fill="currentColor"/><text x="711" y="128.5" text-anchor="end" font-size="12.5" class="m">addr[1:0]</text><circle cx="720" cy="180" r="3.6" fill="currentColor"/><text x="711" y="184.5" text-anchor="end" font-size="12.5" class="m">addr[2]</text><polyline points="720,92 810,92" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><polyline points="720,124 810,124" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><path d="M 810 82 Q 849.68 82 874 108.0 Q 849.68 134 810 134 Q 826.64 108.0 810 82 Z" class="gate"/><text x="836.88" y="112.0" text-anchor="middle" font-size="11" class="dim">NOR</text><circle cx="878.5" cy="108.0" r="4.5" class="gate"/><polyline points="883,108.0 960,108" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><polyline points="720,180 960,180" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M 960 95 L 979.32 95 A 26.68 49.0 0 0 1 979.32 193 L 960 193 Z" class="gate"/><polyline points="1006,144.0 1120,144.0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#ar)"/><text x="1128" y="148.5" text-anchor="start" font-size="12.5" class="m">sr_sel</text><text x="700" y="215" text-anchor="start" font-size="11.5" class="m dim">0x004 = 10'b00_0000_0100</text><text x="700" y="237" text-anchor="start" font-size="11.5" class="m">sr_sel = addr[2] & ~( |{addr[9:3], addr[1:0]} )</text><text x="190" y="278" text-anchor="start" font-size="11.5" class="dim">All 10 bits are compared, so 0x001-0x003 do not alias onto CR and 0x005-0x007 do not alias onto SR.</text></svg>
+<figcaption>
+V&#7899;i <code>ADDR_W = 10</code> c&#7889; &#273;&#7883;nh, hai b&#7897;
+so s&#225;nh h&#7859;ng s&#7889; suy ra th&#224;nh c&#226;y NOR.
+&#272;&#226;y l&#224; l&#253; do <code>0x001</code>&ndash;<code>0x003</code>
+kh&#244;ng tr&#250;ng <code>CR</code>.
+</figcaption>
+</figure>
+
+<h2>4. Ph&#432;&#417;ng tr&#236;nh logic</h2>
+<table>
+<thead><tr><th style="width:26%">T&#237;n hi&#7879;u</th>
+<th style="width:44%">Ph&#432;&#417;ng tr&#236;nh</th>
+<th>Lo&#7841;i</th></tr></thead>
+<tbody>
+<tr><td><code>cr_sel</code></td><td><code>~( |addr[9:0] )</code></td>
+    <td>t&#7893; h&#7907;p</td></tr>
+<tr><td><code>sr_sel</code></td>
+    <td><code>addr[2] &amp; ~( |{addr[9:3], addr[1:0]} )</code></td>
+    <td>t&#7893; h&#7907;p</td></tr>
+<tr><td><code>cr_wr</code> / <code>sr_wr</code></td>
+    <td><code>wr_en &amp; cr_sel</code> / <code>wr_en &amp; sr_sel</code></td>
+    <td>t&#7893; h&#7907;p</td></tr>
+<tr><td><code>pulse</code></td><td><code>cr_wr &amp; wdata[0]</code></td>
+    <td>t&#7893; h&#7907;p, 1 cycle</td></tr>
+<tr><td><code>count_clr</code></td><td><code>cr_wr &amp; wdata[1]</code></td>
+    <td>t&#7893; h&#7907;p, 1 cycle</td></tr>
+<tr><td><code>sr_ovf_clr</code></td>
+    <td><code>sr_wr &amp; ~wdata[3]</code></td><td>t&#7893; h&#7907;p</td></tr>
+<tr><td><code>sr_ovf_nxt</code></td>
+    <td><code>(overflow | sr_overflow) &amp; ~sr_ovf_clr</code></td>
+    <td>t&#7893; h&#7907;p &#8594; D c&#7911;a FF</td></tr>
+<tr><td><code>sr_overflow</code></td>
+    <td>FF, clock <code>clk</code>, <code>CLR_N = rst_n</code></td>
+    <td><b>1 flip-flop</b></td></tr>
+<tr><td><code>rdata</code></td>
+    <td><code>rd_en ? (sr_sel ? {28'h0, sr_overflow, count} : 32'h0)
+        : 32'h0</code></td>
+    <td>t&#7893; h&#7907;p</td></tr>
+</tbody>
+</table>
+
+<h2>5. B&#7843;ng tr&#7841;ng th&#225;i k&#7871; c&#7911;a
+<code>SR.overflow</code></h2>
+<table>
+<thead><tr><th><code>sr_ovf_clr</code></th><th><code>overflow</code></th>
+<th><code>sr_overflow</code></th><th><code>sr_ovf_nxt</code></th>
+<th>Di&#7877;n gi&#7843;i</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>gi&#7929; m&#7913;c 0</td></tr>
+<tr><td>0</td><td>0</td><td>1</td><td><b>1</b></td>
+    <td>gi&#7929; m&#7913;c 1 &mdash; kh&#244;ng t&#7921; clear</td></tr>
+<tr><td>0</td><td>1</td><td>0</td><td><b>1</b></td><td>set b&#7903;i
+    tr&#224;n</td></tr>
+<tr><td>0</td><td>1</td><td>1</td><td><b>1</b></td><td>&#273;&#227; set,
+    v&#7851;n set</td></tr>
+<tr><td>1</td><td>0</td><td>0</td><td>0</td><td>clear khi &#273;ang 0</td></tr>
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td>CPU ghi 0 &#8594;
+    clear</td></tr>
+<tr><td>1</td><td>1</td><td>0</td><td>0</td>
+    <td><b>clear th&#7855;ng set</b> (O3)</td></tr>
+<tr><td>1</td><td>1</td><td>1</td><td>0</td>
+    <td><b>clear th&#7855;ng set</b> (O3)</td></tr>
+</tbody>
+</table>
+<p style="color:var(--dim);font-size:13px;margin-top:10px">
+Ghi <code>1</code> v&#224;o <code>SR[3]</code> cho
+<code>sr_ovf_clr = 0</code> &#8594; r&#417;i v&#224;o 4 d&#242;ng
+&#273;&#7847;u, t&#7913;c l&#224; <b>kh&#244;ng t&#225;c d&#7909;ng</b>.
+Hai d&#242;ng cu&#7889;i l&#224; tr&#432;&#7901;ng h&#7907;p
+kh&#244;ng t&#7841;o &#273;&#432;&#7907;c qua bus CPU &#273;&#417;n
+(xem Vplan R1).
+</p>
+
+<h2>6. Ki&#7875;m &#273;&#7871;m ph&#7847;n t&#7917; tu&#7847;n t&#7921;</h2>
+<table>
+<thead><tr><th>Kh&#7889;i</th><th>Flip-flop</th><th>Reset</th>
+<th>Gi&#225; tr&#7883; reset</th></tr></thead>
+<tbody>
+<tr><td><code>u_register</code></td><td>1 &mdash;
+    <code>sr_overflow</code></td>
+    <td>async, active&#8209;low</td><td><code>1'b0</code></td></tr>
+<tr><td><code>u_counter</code></td><td>3 &mdash;
+    <code>count[2:0]</code></td>
+    <td>async, active&#8209;low</td><td><code>3'b000</code></td></tr>
+<tr><td><b>t&#7893;ng</b></td><td><b>4</b></td><td>&mdash;</td>
+    <td>&mdash;</td></tr>
+</tbody>
+</table>
+<p style="color:var(--dim);font-size:13px;margin-top:10px">
+Kh&#244;ng c&#243; flip-flop n&#224;o kh&#225;c:
+<code>pulse</code>, <code>count_clr</code>, <code>overflow</code> v&#224;
+<code>rdata</code> &#273;&#7873;u thu&#7847;n t&#7893; h&#7907;p. Con
+s&#7889; 4 n&#224;y l&#224; <b>&#273;&#7871;m tr&#234;n s&#417;
+&#273;&#7891;</b>, kh&#244;ng ph&#7843;i s&#7889; li&#7879;u synthesis
+&mdash; ch&#432;a ch&#7841;y Vivado.
+</p>
+
+<footer>
+Ngu&#7891;n: <code>ddoc/3-bit_pulse_counter_spec.md</code>,
+<code>ddoc/counter_top_proposal.md</code>,
+<code>rtl/counter_top.v</code>, <code>rtl/register.v</code>,
+<code>rtl/counter.v</code>.
+S&#417; &#273;&#7891; n&#224;y &#273;&#432;&#7907;c v&#7869;
+&#273;&#7889;i chi&#7871;u tr&#7921;c ti&#7871;p v&#7899;i RTL trong
+repo &#8212; RTL &#273;&#227; qua <code>iverilog -g2005 -Wall</code>
+s&#7841;ch v&#224; <code>tb/counter_top/test_bench.v</code> pass
+154/154 check. Ch&#432;a ch&#7841;y lint Verilator, xsim hay synthesis.
+</footer>
+
+</div>
+</body>
+</html>
