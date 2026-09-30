@@ -3,6 +3,10 @@
 > **DUT:** `rtl/counter_top.v` (+ `rtl/register.v`, `rtl/counter.v`)
 > **Tài liệu tham chiếu:** `ddoc/3-bit_pulse_counter_spec.md` · `ddoc/counter_top_proposal.md` ·
 > `doc/counter_top.md` · `doc/register.md`
+> **Dạng checklist rút gọn:** `doc/counter_top_vplan.xlsx` — 5 item (ITEM / DESCRIPTION / SEQUENCES /
+> PASS CONDITION) gộp từ 8 testcase dưới đây, vẫn phủ đủ 13 feature. Tài liệu này là bản chi tiết kèm lý do;
+> file Excel là bản để tick khi chạy.
+>
 > **Phạm vi bản Vplan này:** **chỉ** kiểm tra khả năng **đọc/ghi register** qua CPU bus ở mức
 > `counter_top`, bằng **directed test đơn giản**. Chức năng đếm/tràn chỉ được dùng làm *phương tiện
 > quan sát*, không phải mục tiêu verify của bản này (xem §9 Ngoài phạm vi).
