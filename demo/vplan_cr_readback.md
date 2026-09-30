@@ -1,6 +1,12 @@
 # Vplan (demo) — `counter_top` với `CR.count_clr` đọc được
 
 > **DUT:** `rtl_demo/` (bản cố định tham số) · **Bench:** `tb/counter_top/tbench.v`
+>
+> ⚠️ **Đã thay bằng checklist rút gọn.** `tbench.v` hiện implement 5 item `VP01`–`VP05` của
+> `doc/counter_top_vplan.xlsx`, **không còn** DTC01–DTC04. Bốn DTC dưới đây vẫn đúng về nội dung
+> và đã được gộp vào: DTC01 → `VP01`, DTC02 → `VP03`, DTC03 → `VP03` (check B7a/B7b), DTC04 →
+> `VP02`+`VP05`. Giữ tài liệu này làm lý do thiết kế của các check readback; muốn biết bench chạy
+> cái gì thì đọc `doc/counter_top_vplan.xlsx`.
 > **Thiết kế:** `demo/doc/cr_readback_design.md`
 > **Phạm vi:** vài directed test đơn giản theo đúng tinh thần Vplan cũ
 > (`doc/counter_top_vplan.md`), **cộng thêm** phần kiểm tra đường đọc mới của `CR`.
@@ -116,6 +122,6 @@ Mỗi check self-check trong `tb/counter_top/tbench.v`; in một dòng PASS/FAIL
 |---|---|
 | Vplan | Hoàn thành (tài liệu này) |
 | Bench | `tb/counter_top/tbench.v` |
-| Kết quả chạy | **4/4 DTC PASS, 23/23 check PASS**, `[FINISH] PASS` (Icarus Verilog 12.0) |
-| Kiểm tra khả năng bắt lỗi | Tiêm bug `count_clr = cr_clr_q` (phương án A) vào bản copy RTL → **DTC03 fail ở check 4 và 5**, `[FINISH] FAIL`. Ba DTC còn lại vẫn PASS, đúng như mong đợi: chỉ DTC03 được thiết kế để bắt ca này |
+| Kết quả chạy | Bench đã tái cấu trúc: **5/5 item VP01–VP05, 158/158 check PASS**, `[FINISH] PASS` (Icarus Verilog 12.0) |
+| Kiểm tra khả năng bắt lỗi | Mutation test 9 bug trên `rtl_demo/`: **8/9 bắt được**, gồm cả `count_clr = cr_clr_q` (phương án A) và hai bug riêng của đường đọc mới. Ca trượt duy nhất là `set` đè `clear` trên `SR.overflow` (O3) — đúng như rủi ro đã ghi, không verify được ở mức IP |
 | Verilator / xsim / Vivado | Chưa chạy — không có trong môi trường |

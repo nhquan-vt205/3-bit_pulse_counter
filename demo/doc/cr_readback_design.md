@@ -141,6 +141,6 @@ Dòng 4 là dòng quan trọng nhất: sau khi ghi `1` ở dòng 3, counter **v�
 | Hạng mục | Kết quả |
 |---|---|
 | `iverilog -g2005 -Wall` trên `rtl_demo/` | sạch, không cảnh báo |
-| `tb/counter_top/tbench.v` (Vplan `demo/vplan_cr_readback.md`) | 4/4 DTC, 23/23 check, `[FINISH] PASS` |
+| `tb/counter_top/tbench.v` (checklist `doc/counter_top_vplan.xlsx`) | 5/5 item VP01–VP05, 158/158 check, `[FINISH] PASS` |
 | Regression TC01–TC08 cũ trên RTL mới | 153/154 pass; 1 fail là TC03 check 3, đúng như mong đợi |
 | Verilator lint / xsim / Vivado | **chưa chạy** — không có trong môi trường |
