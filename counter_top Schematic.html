@@ -1,0 +1,908 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>counter_top Schematic</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: single reading column; each figure is a full-bleed drafting sheet with its caption below. */
+  :root {
+    --bg: #eef0f2;
+    --sheet: #ffffff;
+    --fg: #16202b;
+    --muted: #5b6b7a;
+    --line: #b9c3cc;
+    --accent: #14608f;   /* control nets: pulse / count_clr */
+    --seq: #9a5b00;      /* sequential elements + overflow path */
+    --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f151b;
+      --sheet: #172028;
+      --fg: #e4ebf1;
+      --muted: #94a4b3;
+      --line: #35434f;
+      --accent: #63aadd;
+      --seq: #e3a544;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f151b;
+    --sheet: #172028;
+    --fg: #e4ebf1;
+    --muted: #94a4b3;
+    --line: #35434f;
+    --accent: #63aadd;
+    --seq: #e3a544;
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .wrap {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding-inline: 16px;
+    padding-block: 32px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+  }
+
+  header.doc { display: flex; flex-direction: column; gap: 10px; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  h1 {
+    font-family: var(--font-mono);
+    font-size: clamp(24px, 5vw, 34px);
+    font-weight: 600;
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .sub { color: var(--muted); max-width: 62ch; margin: 0; }
+  .srcline {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+  }
+
+  h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  h2 .num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  h3 { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+  section { display: flex; flex-direction: column; gap: 14px; }
+  p { margin: 0; max-width: 72ch; }
+  ul { margin: 0; padding-left: 20px; max-width: 72ch; }
+  li { margin-bottom: 4px; }
+  code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+
+  figure {
+    margin: 0;
+    background: var(--sheet);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+  }
+  .sheet { overflow-x: auto; }
+  svg.dwg { display: block; width: 100%; height: auto; min-width: 560px; color: var(--fg); }
+  figcaption {
+    font-size: 12.5px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 9px;
+  }
+  figcaption b { color: var(--fg); font-weight: 600; }
+
+  .eq {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.75;
+    background: var(--sheet);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 2px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    margin: 0;
+    white-space: pre;
+  }
+
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 3px; background: var(--sheet); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.m, th.m { font-family: var(--font-mono); font-size: 12px; white-space: nowrap; }
+  .num-col { font-variant-numeric: tabular-nums; }
+  .hot { color: var(--seq); font-weight: 600; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    font-size: 12.5px;
+    color: var(--muted);
+    align-items: center;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend .k {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 1px 6px;
+    color: var(--fg);
+  }
+
+  .note {
+    border-left: 3px solid var(--seq);
+    background: var(--sheet);
+    border-top: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 12px 14px;
+    font-size: 13.5px;
+  }
+  .note b { color: var(--seq); }
+  footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 14px; }
+</style>
+
+<div class="wrap">
+
+  <header class="doc">
+    <div class="eyebrow">3-bit pulse counter &middot; register design practice</div>
+    <h1>counter_top</h1>
+    <p class="sub">Sơ đồ khối và sơ đồ logic mức gate / flip-flop, dựng từ đặc tả hành vi. Toàn IP có
+      đúng <b>4 flip-flop</b>; mọi thứ còn lại — <code>pulse</code>, <code>count_clr</code>,
+      <code>overflow</code>, <code>rdata</code> — là logic tổ hợp.</p>
+    <div class="srcline">
+      Nguồn: ddoc/3-bit_pulse_counter_spec.md &nbsp;·&nbsp; Proposal: ddoc/counter_top_proposal.md
+      &nbsp;·&nbsp; Plan: PLAN-20260929-001
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="num">00</span> Quy ước ký hiệu</h2>
+    <div class="legend">
+      <span><span class="k">&amp;</span> AND</span>
+      <span><span class="k">≥1</span> OR</span>
+      <span><span class="k">=1</span> XOR</span>
+      <span><span class="k">=</span> so sánh hằng số</span>
+      <span><span class="k">MUX</span> bộ chọn</span>
+      <span><span class="k">▷</span> chân clock</span>
+      <span>vòng tròn nhỏ = đảo / active-low</span>
+      <span>điểm tròn đậm = nối; giao nhau không có điểm = <b>không</b> nối</span>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">01</span> Sơ đồ khối</h2>
+    <figure>
+      <div class="sheet">
+        <svg class="dwg" viewBox="0 0 900 400" role="img"
+             aria-label="Sơ đồ khối counter_top: u_register nhận bus CPU và trao đổi bốn tín hiệu nội bộ pulse, count_clr, overflow, count với u_counter.">
+          <g fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="170" y="40" width="660" height="330" rx="3" stroke="var(--line)" stroke-dasharray="7 5"/>
+            <rect x="250" y="110" width="230" height="190" rx="3"/>
+            <rect x="600" y="110" width="200" height="190" rx="3"/>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">
+            <text x="182" y="60">counter_top</text>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="13" font-weight="500" fill="currentColor">
+            <text x="264" y="136">u_register</text>
+            <text x="614" y="136">u_counter</text>
+          </g>
+          <g font-family="IBM Plex Sans, sans-serif" font-size="11" fill="var(--muted)">
+            <text x="264" y="162">· decode addr → cr_sel / sr_sel</text>
+            <text x="264" y="182">· pulse / count_clr one-shot</text>
+            <text x="264" y="202">· FF SR.overflow (RW0C)</text>
+            <text x="264" y="222">· rdata read mux</text>
+            <text x="614" y="162">· FF count[2:0]</text>
+            <text x="614" y="182">· incrementer +1</text>
+            <text x="614" y="202">· clear (ưu tiên cao)</text>
+            <text x="614" y="222">· overflow detect</text>
+            <text x="264" y="336" font-style="italic">4 flip-flop: count[2:0] ×3 · SR.overflow ×1</text>
+          </g>
+
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,1 L9,5 L0,9 z" fill="currentColor"/>
+            </marker>
+            <marker id="ahA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,1 L9,5 L0,9 z" fill="var(--accent)"/>
+            </marker>
+            <marker id="ahS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,1 L9,5 L0,9 z" fill="var(--seq)"/>
+            </marker>
+          </defs>
+
+          <!-- clock + reset rails -->
+          <g fill="none" stroke="currentColor" stroke-width="1.2">
+            <polyline points="52,68 310,68"/>
+            <polyline points="310,68 310,104" marker-end="url(#ah)"/>
+            <polyline points="310,68 670,68"/>
+            <polyline points="670,68 670,104" marker-end="url(#ah)"/>
+            <polyline points="62,92 350,92"/>
+            <polyline points="350,92 350,104" marker-end="url(#ah)"/>
+            <polyline points="350,92 710,92"/>
+            <polyline points="710,92 710,104" marker-end="url(#ah)"/>
+          </g>
+          <g fill="currentColor">
+            <circle cx="310" cy="68" r="3"/><circle cx="670" cy="68" r="3"/>
+            <circle cx="350" cy="92" r="3"/><circle cx="710" cy="92" r="3"/>
+          </g>
+
+          <!-- CPU bus in -->
+          <g fill="none" stroke="currentColor" stroke-width="1.2">
+            <polyline points="62,146 244,146" marker-end="url(#ah)"/>
+            <polyline points="62,182 244,182" marker-end="url(#ah)"/>
+            <polyline points="80,218 244,218" marker-end="url(#ah)"/>
+            <polyline points="96,254 244,254" marker-end="url(#ah)"/>
+            <polyline points="250,292 100,292" marker-end="url(#ah)"/>
+          </g>
+
+          <!-- internal nets -->
+          <g fill="none" stroke="var(--accent)" stroke-width="1.6">
+            <polyline points="480,150 594,150" marker-end="url(#ahA)"/>
+            <polyline points="480,190 594,190" marker-end="url(#ahA)"/>
+          </g>
+          <g fill="none" stroke="var(--seq)" stroke-width="1.6">
+            <polyline points="600,240 486,240" marker-end="url(#ahS)"/>
+          </g>
+          <g fill="none" stroke="currentColor" stroke-width="1.6">
+            <polyline points="600,280 486,280" marker-end="url(#ah)"/>
+          </g>
+
+          <g font-family="IBM Plex Mono, monospace" font-size="11.5" fill="currentColor">
+            <text x="16" y="72">clk</text>
+            <text x="16" y="96">rst_n</text>
+            <text x="16" y="150">wr_en</text>
+            <text x="16" y="186">rd_en</text>
+            <text x="16" y="222">addr[9:0]</text>
+            <text x="16" y="258">wdata[31:0]</text>
+            <text x="16" y="296">rdata[31:0]</text>
+            <text x="540" y="144" text-anchor="middle" fill="var(--accent)">pulse</text>
+            <text x="540" y="184" text-anchor="middle" fill="var(--accent)">count_clr</text>
+            <text x="543" y="234" text-anchor="middle" fill="var(--seq)">overflow</text>
+            <text x="543" y="274" text-anchor="middle">count[2:0]</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption><b>Hai sub-block, bốn tín hiệu nội bộ.</b> <code>u_register</code> giữ toàn bộ giao
+        tiếp CPU; <code>u_counter</code> không thấy bus. Hai net điều khiển đi sang phải
+        (<span style="color:var(--accent)">pulse, count_clr</span>), hai net trạng thái quay về
+        (<span style="color:var(--seq)">overflow</span>, count[2:0]).</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span> u_register — decode, write strobe, bộ sinh pulse / count_clr</h2>
+    <figure>
+      <div class="sheet">
+        <svg class="dwg" viewBox="0 0 920 350" role="img"
+             aria-label="Sơ đồ logic: hai bộ so sánh địa chỉ tạo cr_sel và sr_sel, AND với wr_en tạo cr_wr và sr_wr, rồi AND với wdata bit 0 và bit 1 tạo pulse và count_clr.">
+          <g fill="none" stroke="currentColor" stroke-width="1.2">
+            <!-- addr fan-out -->
+            <polyline points="80,62 150,62"/>
+            <polyline points="150,62 186,62" marker-end="url(#ah)"/>
+            <polyline points="150,62 150,142"/>
+            <polyline points="150,142 186,142" marker-end="url(#ah)"/>
+            <!-- wr_en trunk -->
+            <polyline points="66,22 340,22"/>
+            <polyline points="340,22 340,174"/>
+            <polyline points="340,94 364,94" marker-end="url(#ah)"/>
+            <polyline points="340,174 364,174" marker-end="url(#ah)"/>
+            <!-- decode outputs -->
+            <polyline points="306,62 364,62" marker-end="url(#ah)"/>
+            <polyline points="306,142 364,142" marker-end="url(#ah)"/>
+            <!-- cr_wr / sr_wr -->
+            <polyline points="426,80 500,80"/>
+            <polyline points="500,80 500,278"/>
+            <polyline points="500,220 614,220" marker-end="url(#ah)"/>
+            <polyline points="500,278 614,278" marker-end="url(#ah)"/>
+            <polyline points="426,160 560,160"/>
+            <!-- wdata bits -->
+            <polyline points="96,242 614,242" marker-end="url(#ah)"/>
+            <polyline points="96,300 614,300" marker-end="url(#ah)"/>
+          </g>
+          <g fill="currentColor">
+            <circle cx="150" cy="62" r="3"/>
+            <circle cx="340" cy="94" r="3"/>
+            <circle cx="340" cy="174" r="3"/>
+            <circle cx="500" cy="220" r="3"/>
+          </g>
+
+          <!-- gates -->
+          <g fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="186" y="40" width="120" height="44" rx="2"/>
+            <rect x="186" y="120" width="120" height="44" rx="2"/>
+            <rect x="364" y="52" width="62" height="56" rx="2"/>
+            <rect x="364" y="132" width="62" height="56" rx="2"/>
+            <rect x="614" y="198" width="62" height="44" rx="2"/>
+            <rect x="614" y="256" width="62" height="44" rx="2"/>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor" text-anchor="middle">
+            <text x="246" y="67">= 10'h000</text>
+            <text x="246" y="147">= 10'h004</text>
+            <text x="395" y="85">&amp;</text>
+            <text x="395" y="165">&amp;</text>
+            <text x="645" y="225">&amp;</text>
+            <text x="645" y="283">&amp;</text>
+          </g>
+
+          <!-- outputs -->
+          <g fill="none" stroke="var(--accent)" stroke-width="1.6">
+            <polyline points="676,220 790,220" marker-end="url(#ahA)"/>
+            <polyline points="676,278 790,278" marker-end="url(#ahA)"/>
+          </g>
+
+          <g font-family="IBM Plex Mono, monospace" font-size="11.5" fill="currentColor">
+            <text x="16" y="26">wr_en</text>
+            <text x="16" y="66">addr[9:0]</text>
+            <text x="16" y="246">wdata[0]</text>
+            <text x="16" y="304">wdata[1]</text>
+            <text x="322" y="56">cr_sel</text>
+            <text x="322" y="136">sr_sel</text>
+            <text x="440" y="74">cr_wr</text>
+            <text x="440" y="154">sr_wr</text>
+            <text x="574" y="154" fill="var(--muted)">→ §03</text>
+            <text x="700" y="214" fill="var(--accent)">pulse</text>
+            <text x="700" y="272" fill="var(--accent)">count_clr</text>
+          </g>
+          <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="var(--muted)">
+            <text x="700" y="234">→ u_counter</text>
+            <text x="700" y="292">→ u_counter</text>
+            <text x="16" y="262">CR.pulse_en</text>
+            <text x="16" y="320">CR.count_clr</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption><b>Không có flip-flop nào trên đường này.</b> Vì vậy <code>pulse</code> rộng đúng
+        1 cycle bằng <code>wr_en</code>, và <code>count</code> chốt ở cạnh clock ngay sau lệnh ghi —
+        khớp waveform mẫu của spec. Chen một flip-flop ở đây sẽ đẩy <code>cnt</code> trễ thêm 1 cycle.
+        Cả <code>CR.pulse_en</code> và <code>CR.count_clr</code> đều không có phần tử lưu, nên đọc
+        <code>CR</code> luôn trả 0.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span> u_register — flip-flop SR.overflow (RW0C)</h2>
+    <figure>
+      <div class="sheet">
+        <svg class="dwg" viewBox="0 0 1000 400" role="img"
+             aria-label="Sơ đồ logic flip-flop SR.overflow: sr_wr và đảo của wdata bit 3 tạo yêu cầu clear; cổng OR gộp overflow với đường hồi tiếp; cổng AND cuối có bubble cho yêu cầu clear nên clear đè set; flip-flop có chân clear bất đồng bộ active-low.">
+          <g fill="none" stroke="currentColor" stroke-width="1.2">
+            <polyline points="72,60 294,60" marker-end="url(#ah)"/>
+            <polyline points="96,104 282,104"/>
+            <!-- sr_ovf_clr xuống cổng AND cuối -->
+            <polyline points="360,80 620,80"/>
+            <polyline points="620,80 620,178"/>
+            <polyline points="620,178 634,178"/>
+            <!-- OR2 -> AND2 cuối -->
+            <polyline points="514,200 560,200"/>
+            <polyline points="560,200 560,222"/>
+            <polyline points="560,222 640,222" marker-end="url(#ah)"/>
+            <!-- AND2 cuối -> FF -->
+            <polyline points="700,200 726,200"/>
+            <polyline points="726,200 726,190"/>
+            <polyline points="726,190 752,190" marker-end="url(#ah)"/>
+            <!-- clk + rst_n -->
+            <polyline points="52,320 736,320"/>
+            <polyline points="736,320 736,230"/>
+            <polyline points="736,230 752,230" marker-end="url(#ah)"/>
+            <polyline points="62,358 712,358"/>
+            <polyline points="712,358 712,262"/>
+            <polyline points="712,262 740,262"/>
+          </g>
+          <!-- overflow input path -->
+          <g fill="none" stroke="var(--seq)" stroke-width="1.6">
+            <polyline points="150,186 444,186" marker-end="url(#ahS)"/>
+          </g>
+          <!-- Q + feedback -->
+          <g fill="none" stroke="var(--seq)" stroke-width="1.6">
+            <polyline points="872,190 960,190" marker-end="url(#ahS)"/>
+          </g>
+          <g fill="none" stroke="currentColor" stroke-width="1.2">
+            <polyline points="910,190 910,286"/>
+            <polyline points="910,286 420,286"/>
+            <polyline points="420,286 420,214"/>
+            <polyline points="420,214 444,214" marker-end="url(#ah)"/>
+          </g>
+          <g fill="currentColor"><circle cx="910" cy="190" r="3"/></g>
+
+          <!-- gates -->
+          <g fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="300" y="40" width="60" height="80" rx="2"/>
+            <circle cx="288" cy="104" r="6"/>
+            <rect x="444" y="162" width="70" height="76" rx="2"/>
+            <rect x="640" y="162" width="60" height="76" rx="2"/>
+            <circle cx="628" cy="178" r="6"/>
+            <rect x="752" y="160" width="120" height="120" rx="2"/>
+            <circle cx="746" cy="262" r="6"/>
+            <polygon points="754,222 768,230 754,238"/>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor" text-anchor="middle">
+            <text x="330" y="85">&amp;</text>
+            <text x="479" y="206">≥1</text>
+            <text x="670" y="206">&amp;</text>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor">
+            <text x="764" y="195">D</text>
+            <text x="860" y="195" text-anchor="end">Q</text>
+          </g>
+          <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="var(--muted)">
+            <text x="774" y="235">clk</text>
+            <text x="758" y="266">CLR_N (async)</text>
+            <text x="812" y="152" text-anchor="middle">FF × 1</text>
+            <text x="416" y="74">clear req.</text>
+            <text x="479" y="156" text-anchor="middle">set hoặc hold</text>
+            <text x="670" y="156" text-anchor="middle" fill="var(--seq)">CLEAR đè SET</text>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="11.5" fill="currentColor">
+            <text x="16" y="64">sr_wr</text>
+            <text x="16" y="108">wdata[3]</text>
+            <text x="16" y="190" fill="var(--seq)">overflow</text>
+            <text x="16" y="324">clk</text>
+            <text x="16" y="362">rst_n</text>
+            <text x="372" y="72">sr_ovf_clr</text>
+            <text x="524" y="194">set_or_hold</text>
+            <text x="706" y="186">sr_ovf_nxt</text>
+            <text x="886" y="184" fill="var(--seq)">sr_overflow</text>
+          </g>
+          <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="var(--muted)">
+            <text x="16" y="124">ghi 0 ⇒ clear</text>
+            <text x="16" y="206">từ u_counter</text>
+            <text x="886" y="200">→ SR[3] và read mux</text>
+            <text x="446" y="302">đường hồi tiếp sr_overflow (giữ trạng thái)</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption><b>Ba tính chất phải đọc được từ hình.</b> (1) Không tồn tại đường nào kéo bit về 0
+        theo thời gian hay theo <code>pulse</code> kế tiếp — chỉ <code>rst_n</code> và
+        <code>sr_ovf_clr</code>. (2) Ghi <code>1</code> vào <code>SR[3]</code> làm
+        <code>sr_ovf_clr = 0</code> nên bit giữ nguyên qua nhánh hold của cổng OR. (3)
+        <code>sr_ovf_clr</code> nằm ở <b>cổng cuối</b>, sau OR, nên <b>clear đè set</b>: lệnh ghi
+        <code>0</code> trùng cycle với <code>overflow</code> vẫn cho <code>0</code>, và event overflow
+        cycle đó không được ghi nhận. Đặt bubble ở cổng cuối cũng tiết kiệm một cổng so với phương án
+        set đè clear.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span> u_register — read mux rdata</h2>
+    <figure>
+      <div class="sheet">
+        <svg class="dwg" viewBox="0 0 980 330" role="img"
+             aria-label="Sơ đồ read mux: nhánh CR trả 0, nhánh SR ghép sr_overflow với count, nhánh mặc định trả 0; mux chọn theo cr_sel và sr_sel, rồi AND với rd_en tạo rdata.">
+          <g fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="300" y="40" width="200" height="50" rx="2"/>
+            <rect x="300" y="118" width="200" height="50" rx="2"/>
+            <rect x="300" y="196" width="200" height="40" rx="2"/>
+            <rect x="540" y="40" width="64" height="196" rx="2"/>
+            <rect x="700" y="108" width="60" height="60" rx="2"/>
+          </g>
+          <g fill="none" stroke="currentColor" stroke-width="1.2">
+            <polyline points="500,65 534,65" marker-end="url(#ah)"/>
+            <polyline points="500,143 534,143" marker-end="url(#ah)"/>
+            <polyline points="500,216 520,216"/>
+            <polyline points="520,216 520,200"/>
+            <polyline points="520,200 534,200" marker-end="url(#ah)"/>
+            <polyline points="160,60 294,60" marker-end="url(#ah)"/>
+            <polyline points="160,134 294,134" marker-end="url(#ah)"/>
+            <polyline points="160,158 294,158" marker-end="url(#ah)"/>
+            <polyline points="62,272 556,272"/>
+            <polyline points="556,272 556,242" marker-end="url(#ah)"/>
+            <polyline points="62,300 588,300"/>
+            <polyline points="588,300 588,242" marker-end="url(#ah)"/>
+            <polyline points="604,138 694,138" marker-end="url(#ah)"/>
+            <polyline points="52,196 680,196"/>
+            <polyline points="680,196 680,152"/>
+            <polyline points="680,152 694,152" marker-end="url(#ah)"/>
+            <polyline points="760,138 900,138" marker-end="url(#ah)"/>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor" text-anchor="middle">
+            <text x="400" y="70">32'h0000_0000</text>
+            <text x="400" y="148">{28'h0, sr_overflow, count[2:0]}</text>
+            <text x="400" y="221">32'h0000_0000</text>
+            <text x="730" y="143">&amp;</text>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor"
+             transform="translate(572,138) rotate(-90)" text-anchor="middle">
+            <text x="0" y="4">MUX</text>
+          </g>
+          <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="var(--muted)">
+            <text x="306" y="106">CR readback — bit[1] W1P, bit[0] WO, bit[31:2] reserved</text>
+            <text x="306" y="184">SR readback — count[2:0] lấy real-time, không qua FF</text>
+            <text x="306" y="252">addr không khớp</text>
+            <text x="16" y="212">gate đọc</text>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="11.5" fill="currentColor">
+            <text x="16" y="64">cr_sel</text>
+            <text x="16" y="138" fill="var(--seq)">sr_overflow</text>
+            <text x="16" y="162">count[2:0]</text>
+            <text x="16" y="276">cr_sel</text>
+            <text x="16" y="304">sr_sel</text>
+            <text x="52" y="192">rd_en</text>
+            <text x="618" y="130">rd_word</text>
+            <text x="790" y="132">rdata[31:0]</text>
+          </g>
+          <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="var(--muted)">
+            <text x="16" y="292">chọn nhánh</text>
+            <text x="790" y="148">→ port top</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption><b>Thuần tổ hợp.</b> <code>rdata</code> hợp lệ ngay trong cycle có <code>rd_en</code>,
+        không có tầng pipeline nào. <code>SR.cnt</code> nối trực tiếp <code>count[2:0]</code> nên phản
+        ánh real-time, đúng yêu cầu "always reflected" của spec.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span> u_counter — incrementer, mux next-state, flip-flop, overflow</h2>
+    <figure>
+      <div class="sheet">
+        <svg class="dwg" viewBox="0 0 1000 560" role="img"
+             aria-label="Sơ đồ logic u_counter: incrementer ba bit bằng cổng đảo, XOR và AND; mux ba lối ưu tiên count_clr rồi pulse rồi giữ; ba flip-flop với clear bất đồng bộ; bộ phát hiện overflow bằng AND của pulse, đảo count_clr và count bằng bảy.">
+          <!-- incrementer -->
+          <g fill="none" stroke="var(--line)" stroke-width="1.2" stroke-dasharray="6 4">
+            <rect x="96" y="34" width="250" height="210" rx="3"/>
+          </g>
+          <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="var(--muted)">
+            <text x="104" y="28">incrementer +1 (3-bit, wrap tự nhiên)</text>
+          </g>
+          <g fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="150" y="50" width="48" height="36" rx="2"/>
+            <circle cx="206" cy="68" r="6"/>
+            <rect x="150" y="104" width="48" height="52" rx="2"/>
+            <rect x="150" y="176" width="48" height="52" rx="2"/>
+            <rect x="248" y="176" width="48" height="52" rx="2"/>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor" text-anchor="middle">
+            <text x="174" y="73">1</text>
+            <text x="174" y="135">=1</text>
+            <text x="174" y="207">&amp;</text>
+            <text x="272" y="207">=1</text>
+          </g>
+          <g fill="none" stroke="currentColor" stroke-width="1.2">
+            <polyline points="212,68 400,68" marker-end="url(#ah)"/>
+            <polyline points="198,130 400,130" marker-end="url(#ah)"/>
+            <polyline points="198,202 242,202" marker-end="url(#ah)"/>
+            <polyline points="296,202 400,202" marker-end="url(#ah)"/>
+            <!-- feeds into gates from the count bus taps -->
+            <polyline points="120,68 150,68" marker-end="url(#ah)"/>
+            <polyline points="120,118 150,118" marker-end="url(#ah)"/>
+            <polyline points="120,144 150,144" marker-end="url(#ah)"/>
+            <polyline points="120,190 150,190" marker-end="url(#ah)"/>
+            <polyline points="120,216 150,216" marker-end="url(#ah)"/>
+            <polyline points="120,216 120,68"/>
+            <polyline points="230,158 230,190"/>
+            <polyline points="230,190 248,190" marker-end="url(#ah)"/>
+            <polyline points="120,158 230,158"/>
+          </g>
+          <g font-family="IBM Plex Sans, sans-serif" font-size="10" fill="var(--muted)">
+            <text x="214" y="86">inc[0]</text>
+            <text x="214" y="126">inc[1]</text>
+            <text x="310" y="198">inc[2]</text>
+            <text x="204" y="220">c1</text>
+          </g>
+
+          <!-- next-state mux -->
+          <g fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="400" y="50" width="70" height="230" rx="2"/>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor"
+             transform="translate(435,165) rotate(-90)" text-anchor="middle">
+            <text x="0" y="4">MUX 3:1</text>
+          </g>
+          <g font-family="IBM Plex Sans, sans-serif" font-size="10" fill="var(--muted)">
+            <text x="336" y="252" text-anchor="end">3'b000</text>
+            <text x="336" y="278" text-anchor="end">count[2:0] (hold)</text>
+            <text x="478" y="44">ưu tiên: count_clr &gt; pulse &gt; hold</text>
+          </g>
+          <g fill="none" stroke="currentColor" stroke-width="1.2">
+            <polyline points="344,248 400,248" marker-end="url(#ah)"/>
+            <polyline points="344,274 400,274" marker-end="url(#ah)"/>
+            <polyline points="470,165 560,165" marker-end="url(#ah)"/>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="11" fill="currentColor">
+            <text x="480" y="158">count_nxt</text>
+          </g>
+
+          <!-- FF x3 -->
+          <g fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="560" y="106" width="130" height="120" rx="2"/>
+            <circle cx="554" cy="206" r="6"/>
+            <polygon points="562,168 576,176 562,184"/>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor">
+            <text x="572" y="140">D[2:0]</text>
+            <text x="678" y="140" text-anchor="end">Q[2:0]</text>
+          </g>
+          <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="var(--muted)">
+            <text x="582" y="181">clk</text>
+            <text x="566" y="210">CLR_N (async → 3'b000)</text>
+            <text x="625" y="98" text-anchor="middle">FF × 3</text>
+          </g>
+          <g fill="none" stroke="currentColor" stroke-width="1.2">
+            <polyline points="52,470 546,470"/>
+            <polyline points="546,470 546,176"/>
+            <polyline points="546,176 560,176" marker-end="url(#ah)"/>
+            <polyline points="62,506 520,506"/>
+            <polyline points="520,506 520,206"/>
+            <polyline points="520,206 548,206"/>
+          </g>
+
+          <!-- count bus out + feedback -->
+          <g fill="none" stroke="currentColor" stroke-width="1.6">
+            <polyline points="690,166 900,166" marker-end="url(#ah)"/>
+            <polyline points="770,166 770,330"/>
+            <polyline points="770,330 80,330"/>
+            <polyline points="80,330 80,216"/>
+            <polyline points="80,216 120,216"/>
+            <polyline points="360,330 360,274"/>
+            <polyline points="360,274 344,274"/>
+          </g>
+          <g fill="currentColor">
+            <circle cx="770" cy="166" r="3"/>
+            <circle cx="360" cy="330" r="3"/>
+            <circle cx="120" cy="216" r="3"/>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="11.5" fill="currentColor">
+            <text x="800" y="158">count[2:0]</text>
+            <text x="16" y="474">clk</text>
+            <text x="16" y="510">rst_n</text>
+          </g>
+          <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="var(--muted)">
+            <text x="800" y="176">→ u_register (SR.cnt)</text>
+            <text x="392" y="346">hồi tiếp count[2:0]</text>
+          </g>
+
+          <!-- overflow detector -->
+          <g fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="420" y="382" width="60" height="72" rx="2"/>
+            <rect x="620" y="378" width="60" height="86" rx="2"/>
+            <circle cx="608" cy="450" r="6"/>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor" text-anchor="middle">
+            <text x="450" y="423">&amp;</text>
+            <text x="650" y="426">&amp;</text>
+          </g>
+          <g fill="none" stroke="currentColor" stroke-width="1.2">
+            <polyline points="250,330 250,438"/>
+            <polyline points="250,398 414,398" marker-end="url(#ah)"/>
+            <polyline points="250,418 414,418" marker-end="url(#ah)"/>
+            <polyline points="250,438 414,438" marker-end="url(#ah)"/>
+            <polyline points="480,418 560,418"/>
+            <polyline points="560,418 560,396"/>
+            <polyline points="560,396 614,396" marker-end="url(#ah)"/>
+          </g>
+          <g fill="currentColor">
+            <circle cx="250" cy="330" r="3"/>
+            <circle cx="250" cy="398" r="3"/>
+            <circle cx="250" cy="418" r="3"/>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">
+            <text x="262" y="393">count[2]</text>
+            <text x="262" y="413">count[1]</text>
+            <text x="262" y="433">count[0]</text>
+          </g>
+          <g fill="none" stroke="var(--accent)" stroke-width="1.6">
+            <polyline points="120,424 590,424"/>
+            <polyline points="590,424 614,424" marker-end="url(#ahA)"/>
+            <polyline points="180,450 596,450"/>
+            <polyline points="180,528 180,450"/>
+            <polyline points="120,528 180,528"/>
+          </g>
+          <g fill="none" stroke="var(--accent)" stroke-width="1.6">
+            <polyline points="120,424 120,388"/>
+            <polyline points="120,388 394,388"/>
+            <polyline points="394,388 394,224"/>
+            <polyline points="394,224 400,224" marker-end="url(#ahA)"/>
+            <polyline points="180,528 372,528"/>
+            <polyline points="372,528 372,250"/>
+            <polyline points="372,250 400,250" marker-end="url(#ahA)"/>
+          </g>
+          <g fill="var(--accent)">
+            <circle cx="120" cy="424" r="3"/>
+            <circle cx="180" cy="528" r="3"/>
+          </g>
+          <g fill="none" stroke="var(--seq)" stroke-width="1.6">
+            <polyline points="680,420 900,420" marker-end="url(#ahS)"/>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="11.5" fill="currentColor">
+            <text x="490" y="410">cnt_max</text>
+            <text x="800" y="412" fill="var(--seq)">overflow</text>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--accent)">
+            <text x="52" y="548">count_clr</text>
+            <text x="52" y="466">pulse</text>
+          </g>
+          <g font-family="IBM Plex Sans, sans-serif" font-size="10.5" fill="var(--muted)">
+            <text x="800" y="432">→ u_register (set SR[3])</text>
+            <text x="490" y="426">== 3'b111</text>
+            <text x="614" y="470">đảo count_clr</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption><b>Wrap, không saturate.</b> Bộ tăng chỉ giữ 3 bit nên <code>3'b111 + 1</code> tự về
+        <code>3'b000</code> — không có cổng nào chặn việc đếm tại giá trị max, đúng dãy
+        <code>3'h7 → 3'h0</code> của waveform mẫu. Cổng cuối của bộ phát hiện tràn lấy cả
+        <code>~count_clr</code>, nhất quán với ưu tiên của mux: nếu lệnh ghi yêu cầu xoá thì không có
+        việc tăng đếm, nên không tính là tràn.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><span class="num">06</span> Phương trình logic của sơ đồ</h2>
+    <p>Chú thích của các hình trên ở dạng phương trình, dùng làm đầu vào cho bước viết RTL. Đây không
+      phải file RTL.</p>
+    <pre class="eq">u_register
+  cr_sel     = (addr == 10'h000)
+  sr_sel     = (addr == 10'h004)
+  cr_wr      = wr_en &amp; cr_sel
+  sr_wr      = wr_en &amp; sr_sel
+
+  pulse      = cr_wr &amp; wdata[0]                        // CR.pulse_en  (WO,  one-shot)
+  count_clr  = cr_wr &amp; wdata[1]                        // CR.count_clr (W1P, one-shot)
+
+  sr_ovf_clr  = sr_wr &amp; ~wdata[3]                      // RW0C: ghi 0 thì clear
+  sr_ovf_nxt  = (overflow | sr_overflow) &amp; ~sr_ovf_clr // CLEAR ĐÈ SET
+  // FF: async reset active-low → sr_overflow = 1'b0
+
+  rd_word    = cr_sel ? 32'h0
+             : sr_sel ? {28'h0, sr_overflow, count[2:0]}
+             :          32'h0
+  rdata      = rd_en ? rd_word : 32'h0
+
+u_counter
+  cnt_max    = count[2] &amp; count[1] &amp; count[0]          // == 3'b111
+  overflow   = pulse &amp; ~count_clr &amp; cnt_max
+
+  count_nxt  = count_clr ? 3'b000
+             : pulse     ? (count + 3'b001)            // 3 bit ⇒ wrap 7→0
+             :              count
+  // FF × 3: async reset active-low → count = 3'b000</pre>
+  </section>
+
+  <section>
+    <h2><span class="num">07</span> Register map</h2>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th class="m">Addr</th><th class="m">Bits</th><th class="m">Field</th><th>Access</th><th>Hành vi</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="m">0x000</td><td class="m">[31:2]</td><td class="m">reserved</td><td>RO 0</td><td>Đọc trả 0</td></tr>
+          <tr><td class="m">0x000</td><td class="m">[1]</td><td class="m">count_clr</td><td><b>W1P</b></td><td>Ghi 1 → xoá counter về 0. Ghi 0 → không xoá. Đọc trả 0. Không có phần tử lưu</td></tr>
+          <tr><td class="m">0x000</td><td class="m">[0]</td><td class="m">pulse_en</td><td><b>WO</b></td><td>Ghi 1 → sinh đúng 1 pulse. Đọc trả 0. Không có phần tử lưu</td></tr>
+          <tr><td class="m">0x004</td><td class="m">[31:4]</td><td class="m">reserved</td><td>RO 0</td><td>Đọc trả 0</td></tr>
+          <tr><td class="m">0x004</td><td class="m">[3]</td><td class="m">overflow</td><td><b>RW0C</b></td><td>Set bởi overflow. Ghi 0 → clear; ghi 1 → không tác dụng. Không tự clear. Set và clear trùng cycle → <b>clear thắng</b>. <span class="hot">1 flip-flop</span></td></tr>
+          <tr><td class="m">0x004</td><td class="m">[2:0]</td><td class="m">cnt</td><td><b>RO</b></td><td>Phản ánh count[2:0] real-time</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">08</span> Đi bộ waveform mẫu qua sơ đồ</h2>
+    <p>Oracle là waveform "Worked-out" trong phần Appendix của spec. Cột <code>count</code> trước cạnh
+      là giá trị đang có trong cycle đó; sau cạnh là giá trị chốt vào flip-flop ở cạnh lên kết thúc
+      cycle đó.</p>
+    <div class="tablewrap">
+      <table class="num-col">
+        <thead>
+          <tr>
+            <th>Cycle</th><th class="m">wr_en</th><th class="m">wdata</th><th class="m">pulse</th>
+            <th class="m">count trước</th><th class="m">cnt_max</th><th class="m">overflow</th>
+            <th class="m">count sau</th><th class="m">sr_overflow sau</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>reset</td><td class="m">—</td><td class="m">—</td><td class="m">0</td><td class="m">X</td><td class="m">—</td><td class="m">0</td><td class="m">3'h0</td><td class="m">0</td></tr>
+          <tr><td>W1</td><td class="m">1</td><td class="m">0x1</td><td class="m">1</td><td class="m">3'h0</td><td class="m">0</td><td class="m">0</td><td class="m">3'h1</td><td class="m">0</td></tr>
+          <tr><td>idle</td><td class="m">0</td><td class="m">0x0</td><td class="m">0</td><td class="m">3'h1</td><td class="m">0</td><td class="m">0</td><td class="m">3'h1</td><td class="m">0</td></tr>
+          <tr><td>W2</td><td class="m">1</td><td class="m">0x1</td><td class="m">1</td><td class="m">3'h1</td><td class="m">0</td><td class="m">0</td><td class="m">3'h2</td><td class="m">0</td></tr>
+          <tr><td>W3</td><td class="m">1</td><td class="m">0x1</td><td class="m">1</td><td class="m">3'h2</td><td class="m">0</td><td class="m">0</td><td class="m">3'h3</td><td class="m">0</td></tr>
+          <tr><td>W4</td><td class="m">1</td><td class="m">0x1</td><td class="m">1</td><td class="m">3'h3</td><td class="m">0</td><td class="m">0</td><td class="m">3'h4</td><td class="m">0</td></tr>
+          <tr><td>W5</td><td class="m">1</td><td class="m">0x1</td><td class="m">1</td><td class="m">3'h4</td><td class="m">0</td><td class="m">0</td><td class="m">3'h5</td><td class="m">0</td></tr>
+          <tr><td>W6</td><td class="m">1</td><td class="m">0x1</td><td class="m">1</td><td class="m">3'h5</td><td class="m">0</td><td class="m">0</td><td class="m">3'h6</td><td class="m">0</td></tr>
+          <tr><td>W7</td><td class="m">1</td><td class="m">0x1</td><td class="m">1</td><td class="m">3'h6</td><td class="m">0</td><td class="m">0</td><td class="m">3'h7</td><td class="m">0</td></tr>
+          <tr><td><b>W8</b></td><td class="m">1</td><td class="m">0x1</td><td class="m">1</td><td class="m">3'h7</td><td class="m hot">1</td><td class="m hot">1</td><td class="m">3'h0</td><td class="m hot">1</td></tr>
+          <tr><td>idle</td><td class="m">0</td><td class="m">—</td><td class="m">0</td><td class="m">3'h0</td><td class="m">0</td><td class="m">0</td><td class="m">3'h0</td><td class="m hot">1 (giữ)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Khớp cả bốn đặc điểm của waveform mẫu: <code>cnt</code> tăng ở cạnh clock ngay sau cycle có
+      <code>wr_en</code>; <code>cnt</code> đi <code>3'h7 → 3'h0</code>; <code>overflow</code> cao đúng
+      1 cycle; <code>SR.overflow</code> lên 1 cycle sau đó và giữ mức 1.</p>
+
+    <h3>Các case còn lại</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Case</th><th>Đường đi trên sơ đồ</th><th>Kết quả</th></tr></thead>
+        <tbody>
+          <tr><td class="m">CR ← 0x2</td><td>§02 count_clr = 1 → §05 nhánh ưu tiên 1</td><td>count → 3'b000 ở cạnh kế</td></tr>
+          <tr><td class="m">CR ← 0x0</td><td>pulse = 0, count_clr = 0 → §05 nhánh hold</td><td>count giữ nguyên</td></tr>
+          <tr><td class="m">CR ← 0x3</td><td>§05 count_clr thắng; §05 ~count_clr = 0 ở gate overflow</td><td>count → 3'b000, overflow = 0</td></tr>
+          <tr><td class="m">SR ← 0x0</td><td>§03 sr_ovf_clr = 1 → cổng AND cuối ép 0</td><td>SR.overflow → 0</td></tr>
+          <tr><td class="m">SR ← 0x8</td><td>§03 sr_ovf_clr = 0 → nhánh hold của OR</td><td>Không tác dụng</td></tr>
+          <tr><td class="m">SR ← 0x0 cùng cycle overflow</td><td>§03 clear đè set ở cổng cuối</td><td>SR.overflow → <span class="hot">0</span>; event overflow cycle đó bị bỏ</td></tr>
+          <tr><td class="m">read CR</td><td>§04 nhánh cr_sel</td><td>rdata = 32'h0</td></tr>
+          <tr><td class="m">read SR</td><td>§04 nhánh sr_sel</td><td>{28'h0, sr_overflow, count[2:0]}, cnt real-time</td></tr>
+          <tr><td class="m">rst_n = 0</td><td>Chân CLR_N của cả 4 FF</td><td>count = 3'b000, SR.overflow = 0, bất đồng bộ</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">09</span> Điểm cần chốt trước khi viết RTL</h2>
+    <div class="note">
+      <b>Đã chốt:</b> khi <code>overflow</code> và lệnh CPU ghi <code>0</code> vào
+      <code>SR.overflow</code> xảy ra cùng cycle thì <b>clear thắng</b> — lệnh ghi của CPU luôn thắng.
+      Đánh đổi đã biết: event overflow của cycle đó không được ghi nhận. Spec không quy định trường hợp
+      này; testcase phải cover nó.
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>#</th><th>Điểm</th><th>Phương án của sơ đồ</th><th>Tình trạng</th></tr></thead>
+        <tbody>
+          <tr><td class="m">O1</td><td>Spec ghi access của <code>CR[1]</code> là RW nhưng mô tả "write 0 has no effect" — nếu là bit có phần tử lưu thì nó dính 1 vĩnh viễn</td><td>One-shot / W1P, không FF, đọc về 0</td><td>Đã chốt 2026-09-29. Spec không sửa</td></tr>
+          <tr><td class="m">O2</td><td>Ưu tiên <code>count_clr</code> vs <code>pulse</code></td><td>count_clr thắng, không tính overflow</td><td>Đã chốt 2026-09-29</td></tr>
+          <tr><td class="m">O3</td><td>Ưu tiên set vs clear của <code>SR.overflow</code></td><td><b>clear thắng</b> — bubble ở cổng cuối, đè cả nhánh set</td><td>Đã chốt 2026-09-29</td></tr>
+          <tr><td class="m">O4</td><td><code>rdata</code> có pipeline không</td><td>Tổ hợp, trả 32'h0 khi addr không khớp hoặc rd_en = 0</td><td>Giả định</td></tr>
+          <tr><td class="m">O5</td><td>Decode <code>addr</code> đủ 10 bit hay word-aligned</td><td>Đủ 10 bit — 0x001..0x003 không trúng CR</td><td>Giả định</td></tr>
+          <tr><td class="m">O6</td><td>Reset đồng bộ hay bất đồng bộ</td><td>Bất đồng bộ, active-low</td><td>Đã chốt 2026-09-29</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Trang này chỉ là bản trình bày của <code>ddoc/counter_top_proposal.md</code>. Chưa có RTL,
+    testbench, hay số liệu lint / simulation / synthesis nào — con số "4 flip-flop" là đếm trên sơ đồ,
+    không phải kết quả synthesis.
+  </footer>
+
+</div>
+
+</body></html>
